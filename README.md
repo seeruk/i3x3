@@ -36,6 +36,7 @@ the arrow keys to switch between, or move containers across workspaces.
 * Some sort of visualisation when switching?
 * Refactoring... the code stinks right now, it was a single-evening endeavour.
 * Configuration of grid size (by environment variables?)
+* Tests (definitely for the mathy bits!)
 
 ## License
 
