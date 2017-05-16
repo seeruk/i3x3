@@ -31,6 +31,12 @@ bindsym $mod+Control+Mod1+Down exec i3x3 -direction down -move
 This will allow you to use a 3x3 grid that is separate on each output currently active in i3, using 
 the arrow keys to switch between, or move containers across workspaces.
 
+## Todo
+
+* Some sort of visualisation when switching?
+* Refactoring... the code stinks right now, it was a single-evening endeavour.
+* Configuration of grid size (by environment variables?)
+
 ## License
 
 MIT
