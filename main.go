@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 type Direction string
 
@@ -14,58 +17,60 @@ const (
 // These come from env
 const (
 	// Grid x size
-	x = 4
+	x float64 = 3
 	// Grid y size
-	y = 6
+	y float64 = 3
 )
 
 // These come from i3
 var (
 	// Current workspace
-	cw = 69
+	cw float64 = 18
 	// Current output
-	co = 3
+	co float64 = 2
 	// Number of outputs
-	no = 3
+	no float64 = 2
 	// Direction (i.e. "up", "down", "left", "right")
-	dir = Right
+	dir = Up
 )
 
-type EdgeFunc func(tar int) bool
+type EdgeFunc func(tar float64) bool
 
 var edgeFuncs = map[Direction]EdgeFunc{
-	Up: func(tar int) bool {
+	Up: func(tar float64) bool {
 		return tar-(no*x) <= 0
 	},
-	Down: func(tar int) bool {
+	Down: func(tar float64) bool {
 		return tar+(no*x) > (no*((x*y)-1))+co
 	},
-	Left: func(tar int) bool {
-		return ((tar-co)/y)%2 == 0
+	Left: func(tar float64) bool {
+		return math.Mod((tar-co)/y, 2) == 0
 	},
-	Right: func(tar int) bool {
-		return (((cw-(no*(x-1)))-co)/y)%2 == 0
+	Right: func(tar float64) bool {
+		return math.Mod(((tar-(no*(x-1)))-co)/y, 2) == 0
 	},
 }
 
-type TargetFunc func() int
+type TargetFunc func() float64
 
 var targetFuncs = map[Direction]TargetFunc{
-	Up: func() int {
+	Up: func() float64 {
 		return cw - (no * x)
 	},
-	Down: func() int {
+	Down: func() float64 {
 		return cw + (no * x)
 	},
-	Left: func() int {
+	Left: func() float64 {
 		return cw - no
 	},
-	Right: func() int {
+	Right: func() float64 {
 		return cw + no
 	},
 }
 
 func main() {
+	fmt.Println(cw)
+
 	targetFn, ok := targetFuncs[dir]
 	if !ok {
 		panic("Invalid direction")
@@ -82,5 +87,5 @@ func main() {
 
 	target := targetFn()
 
-	fmt.Printf("Moving from %d to %d\n", cw, target)
+	fmt.Printf("Moving %v from %v to %v\n", dir, cw, target)
 }
