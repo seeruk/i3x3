@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 // A direction represents the course that will be taken for movement through workspaces.
@@ -21,9 +22,9 @@ const (
 
 var (
 	// Grid x size, from env.
-	x float64 = 3
+	x float64
 	// Grid y size, from env.
-	y float64 = 3
+	y float64
 	// Current workspace, from i3.
 	cw float64
 	// Current output, from i3.
@@ -117,6 +118,7 @@ type workspace struct {
 }
 
 func main() {
+	// Flag-based config
 	var move bool
 	var sdir string
 
@@ -126,15 +128,21 @@ func main() {
 
 	dir = direction(sdir)
 
+	// Env-based config
+	ix, err := envAsInt("I3X3_X_SIZE", 3)
+	fatal(err)
+	iy, err := envAsInt("I3X3_Y_SIZE", 3)
+	fatal(err)
+
+	// We convert from int to float to avoid misconfiguration.
+	x = float64(ix)
+	y = float64(iy)
+
 	outputs, err := getOutputs()
-	if err != nil {
-		panic(err)
-	}
+	fatal(err)
 
 	workspaces, err := getWorkspaces()
-	if err != nil {
-		panic(err)
-	}
+	fatal(err)
 
 	// Setup i3 values...
 	no = getActiveOutputCount(outputs)
@@ -163,6 +171,25 @@ func main() {
 	}
 
 	switchToWorkspace(target)
+}
+
+// fatal panics if the given error is not nil.
+func fatal(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+// envAsInt attempts to lookup the value of an environment variable by the given key. If it is not
+// found then the given fallback value is used. If the value is found but can't be converted to a
+// int, an error will be returned.
+func envAsInt(key string, fallback int) (int, error) {
+	val, ok := os.LookupEnv(key)
+	if !ok {
+		return fallback, nil
+	}
+
+	return strconv.Atoi(val)
 }
 
 // moveToWorkspace tells i3 to move the current container to the given workspace. It does not also

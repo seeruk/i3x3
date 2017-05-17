@@ -31,6 +31,11 @@ bindsym $mod+Control+Mod1+Down exec i3x3 -direction down -move
 This will allow you to use a 3x3 grid that is separate on each output currently active in i3, using 
 the arrow keys to switch between, or move containers across workspaces.
 
+### Grid Size
+
+The grid size can be configured by using the environment variables `I3X3_X_SIZE` and `I3X3_Y_SIZE`.
+They must be set to numeric values, and should be integers.
+
 ## Workspace Arrangement
 
 If you have a single output (i.e. single monitor) then you probably won't notice anything fancy 
@@ -71,7 +76,6 @@ little as possible about your physical setup.
 ## Todo
 
 * Some sort of visualisation when switching?
-* Configuration of grid size (by environment variables?)
 * Tests (definitely for the mathy bits!)
 
 ## License
