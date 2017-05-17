@@ -34,7 +34,7 @@ the arrow keys to switch between, or move containers across workspaces.
 ### Grid Size
 
 The grid size can be configured by using the environment variables `I3X3_X_SIZE` and `I3X3_Y_SIZE`.
-They must be set to numeric values, and should be integers.
+They must be set to numeric values, and should be integers. The defaults should be obvious.
 
 ## Workspace Arrangement
 
