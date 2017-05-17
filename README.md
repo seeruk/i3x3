@@ -71,7 +71,6 @@ little as possible about your physical setup.
 ## Todo
 
 * Some sort of visualisation when switching?
-* Refactoring... the code stinks right now, it was a single-evening endeavour.
 * Configuration of grid size (by environment variables?)
 * Tests (definitely for the mathy bits!)
 
