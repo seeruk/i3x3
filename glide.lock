@@ -1,0 +1,8 @@
+hash: bb3c78bed062219018c325b99cbb7d5c79861155086211eb92d312f5e43d3b82
+updated: 2017-08-11T19:32:05.075152965+01:00
+imports:
+- name: github.com/mattn/go-gtk
+  version: f546757330f0b7d13aabef1a8a095c727f6cb571
+  subpackages:
+  - gtk
+testImports: []
