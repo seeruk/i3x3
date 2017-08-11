@@ -126,6 +126,9 @@ func main() {
 	var move bool
 	var sdir string
 
+	// Start GTK as early as possible.
+	gtk.Init(&os.Args)
+
 	flag.BoolVar(&move, "move", false, "Whether or not to move the focused container too")
 	flag.StringVar(&sdir, "direction", "down", "The direction to move in (up, down, left, right)")
 	flag.Parse()
@@ -173,8 +176,6 @@ func main() {
 	// Try create the WS grid preview. This should be created in another thread so we can still send
 	// the i3-msg commands as quickly as possible.
 	go func() {
-		gtk.Init(&os.Args)
-
 		// Create the window
 		window := gtk.NewWindow(gtk.WINDOW_POPUP)
 		window.SetAcceptFocus(false)
