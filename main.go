@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-
 	"time"
 
 	"github.com/mattn/go-gtk/gdk"
@@ -190,7 +189,7 @@ func main() {
 		window.Connect("destroy", gtk.MainQuit)
 
 		// Set main colours
-		window.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#1A1A1A"))
+		window.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#000000"))
 		window.ModifyFG(gtk.STATE_NORMAL, gdk.NewColor("#D3D3D3"))
 
 		table := gtk.NewTable(uint(ix), uint(iy), false)
@@ -205,16 +204,20 @@ func main() {
 			ws := ico + (ino * i)
 
 			label := gtk.NewLabel("")
-			label.SetSizeRequest(60, 60)
+			label.SetMarkup(fmt.Sprintf("%d", int(ws)))
 
+			box := gtk.NewEventBox()
+			box.SetSizeRequest(100, 100)
+			box.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#1A1A1A"))
+
+			// Highlight the active workspace
 			if int(target) == ws {
-				// Highlight the active workspace
-				label.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#2A2A2A"))
+				box.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#2A2A2A"))
 				label.ModifyFG(gtk.STATE_NORMAL, gdk.NewColor("white"))
 				label.SetMarkup(fmt.Sprintf("<b>%d</b>", int(ws)))
-			} else {
-				label.SetMarkup(fmt.Sprintf("%d", int(ws)))
 			}
+
+			box.Add(label)
 
 			row := i / ix
 			col := i - (row * ix)
@@ -223,7 +226,7 @@ func main() {
 			ucol := uint(col)
 
 			// Attach it to the correct place in the table
-			table.Attach(label, ucol, ucol+1, urow, urow+1, gtk.EXPAND, gtk.EXPAND, 0, 0)
+			table.Attach(box, ucol, ucol+1, urow, urow+1, gtk.EXPAND, gtk.EXPAND, 2, 2)
 		}
 
 		window.Add(table)
@@ -234,15 +237,11 @@ func main() {
 
 	if move {
 		err := moveToWorkspace(target)
-		if err != nil {
-			panic(err)
-		}
+		fatal(err)
 	}
 
 	err = switchToWorkspace(target)
-	if err != nil {
-		panic(err)
-	}
+	fatal(err)
 
 	time.Sleep(500 * time.Millisecond)
 
