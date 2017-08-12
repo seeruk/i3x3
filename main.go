@@ -156,6 +156,14 @@ func main() {
 	cw = getCurrentWorkspaceNum(workspaces)
 	co = getCurrentOutputNum(cw, no)
 
+	maxGridPos := getWorkspaceGridPosition(getMaxWorkspaceNum(workspaces), no)
+	maxRealRows := math.Ceil(maxGridPos / x)
+
+	if maxRealRows > y {
+		y = maxRealRows
+		iy = int(maxRealRows)
+	}
+
 	targetFn, ok := targetFuncs[dir]
 	if !ok {
 		panic("Invalid direction")
@@ -215,7 +223,7 @@ func main() {
 			if int(target) == ws {
 				box.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#2A2A2A"))
 				label.ModifyFG(gtk.STATE_NORMAL, gdk.NewColor("white"))
-				label.SetMarkup(fmt.Sprintf("<b>%d</b>", int(ws)))
+				label.SetMarkup(fmt.Sprintf("<b>%d</b>", ws))
 			}
 
 			box.Add(label)
@@ -271,13 +279,13 @@ func envAsInt(key string, fallback int) (int, error) {
 // moveToWorkspace tells i3 to move the current container to the given workspace. It does not also
 // switch to the workspace. Any error running the i3-msg command will be returned.
 func moveToWorkspace(workspace float64) error {
-	return exec.Command("i3-msg", "move", "container", "to", "workspace", fmt.Sprintf("%v", workspace)).Run()
+	return exec.Command("i3-msg", "move", "container", "to", "workspace", fmt.Sprintf("%d", int(workspace))).Run()
 }
 
 // switchToWorkspace tells i3 to switch to the given workspace. Any error running the i3-msg command
 // will be returned.
 func switchToWorkspace(workspace float64) error {
-	return exec.Command("i3-msg", "workspace", fmt.Sprintf("%v", workspace)).Run()
+	return exec.Command("i3-msg", "workspace", fmt.Sprintf("%d", int(workspace))).Run()
 }
 
 // getOutputs fetches an array of outputs from i3. This will return all outputs, not just the active
@@ -314,6 +322,23 @@ func getWorkspaces() ([]workspace, error) {
 	}
 
 	return workspaces, nil
+}
+
+// @todo: Docs
+func getMaxWorkspaceNum(workspaces []workspace) float64 {
+	max := 0.0
+
+	for _, workspace := range workspaces {
+		max = math.Max(max, float64(workspace.Num))
+	}
+
+	return max
+}
+
+// @todo: Docs
+func getWorkspaceGridPosition(workspaceNum float64, outputs float64) float64 {
+	// (ws + (no - (ws % no))) / no = position in grid that goes up by 1 each time.
+	return (workspaceNum + (outputs - (math.Mod(workspaceNum, outputs)))) / outputs
 }
 
 // getActiveOutputCount counts the number of active outputs in the given outputs slice. This could

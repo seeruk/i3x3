@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package proto;
+
+service Workspace {
+    rpc MoveWorkspace(MoveWorkspaceRequest) returns (MoveWorkspaceResponse);
+    rpc SwitchWorkspace(SwitchWorkspaceRequest) returns (SwitchWorkspaceResponse);
+    rpc RedistributeWorkspaces(RedistributeWorkspacesRequest) returns (RedistributeWorkspacesResponse);
+}
+
+enum Direction {
+    UP = 0;
+    DOWN = 1;
+    LEFT = 2;
+    RIGHT = 3;
+}
+
+message MoveWorkspaceRequest {
+    Direction direction = 1;
+}
+
+message MoveWorkspaceResponse {
+    bool success = 1;
+}
+
+message SwitchWorkspaceRequest {
+    Direction direction = 1;
+}
+
+message SwitchWorkspaceResponse {
+    bool success = 1;
+}
+
+message RedistributeWorkspacesRequest {}
+message RedistributeWorkspacesResponse {}

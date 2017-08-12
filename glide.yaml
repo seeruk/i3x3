@@ -3,3 +3,5 @@ import:
 - package: github.com/mattn/go-gtk
   subpackages:
   - gtk
+- package: google.golang.org/grpc
+  version: ^1.5.1
