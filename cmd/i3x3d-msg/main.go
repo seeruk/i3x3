@@ -24,13 +24,13 @@ func main() {
 		Direction: proto.Direction_DOWN,
 	}
 
-	mreq := proto.MoveWorkspaceRequest{
-		Direction: proto.Direction_LEFT,
-	}
-
-	rreq := proto.RedistributeWorkspacesRequest{}
+	//mreq := proto.MoveWorkspaceRequest{
+	//	Direction: proto.Direction_LEFT,
+	//}
+	//
+	//rreq := proto.RedistributeWorkspacesRequest{}
 
 	client.SwitchWorkspace(context.Background(), &sreq)
-	client.MoveWorkspace(context.Background(), &mreq)
-	client.RedistributeWorkspaces(context.Background(), &rreq)
+	//client.MoveWorkspace(context.Background(), &mreq)
+	//client.RedistributeWorkspaces(context.Background(), &rreq)
 }
