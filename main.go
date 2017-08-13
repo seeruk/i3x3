@@ -123,14 +123,9 @@ func main() {
 	var move bool
 	var sdir string
 
-	start := time.Now()
-
 	flag.BoolVar(&move, "move", false, "Whether or not to move the focused container too")
 	flag.StringVar(&sdir, "direction", "down", "The direction to move in (up, down, left, right)")
 	flag.Parse()
-
-	elapsed := time.Since(start)
-	fmt.Println(elapsed)
 
 	dir = direction(sdir)
 
