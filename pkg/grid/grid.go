@@ -156,5 +156,11 @@ func BuildTargetFuncs(environment Environment, size Size) map[Direction]TargetFu
 //  fmt.Println(WorkspaceGridPosition(15, 2))
 //  // Output: 8
 func WorkspaceGridPosition(workspace float64, outputs float64) float64 {
-	return ((workspace + (outputs - (math.Mod(workspace, outputs)))) / outputs) - 1
+	if outputs == 1 {
+		return workspace
+	}
+
+	output := i3.CurrentOutput(workspace, outputs)
+
+	return (workspace + (outputs - output)) / outputs
 }
