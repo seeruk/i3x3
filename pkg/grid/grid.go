@@ -3,8 +3,6 @@ package grid
 import (
 	"math"
 
-	"fmt"
-
 	"github.com/SeerUK/i3x3/pkg/i3"
 )
 
@@ -89,8 +87,6 @@ func BuildEdgeFuncs(environment Environment, size Size) map[Direction]EdgeFunc {
 
 	ao := environment.ActiveOutputs
 	co := environment.CurrentOutput
-
-	fmt.Println(x, y)
 
 	return map[Direction]EdgeFunc{
 		// Up detects if we're on the top edge.
