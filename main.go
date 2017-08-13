@@ -159,6 +159,9 @@ func main() {
 	maxGridPos := getWorkspaceGridPosition(getMaxWorkspaceNum(workspaces), no)
 	maxRealRows := math.Ceil(maxGridPos / x)
 
+	fmt.Println(maxGridPos)
+	fmt.Println(maxRealRows)
+
 	if maxRealRows > y {
 		y = maxRealRows
 		iy = int(maxRealRows)
@@ -337,8 +340,8 @@ func getMaxWorkspaceNum(workspaces []workspace) float64 {
 
 // @todo: Docs
 func getWorkspaceGridPosition(workspaceNum float64, outputs float64) float64 {
-	// (ws + (no - (ws % no))) / no = position in grid that goes up by 1 each time.
-	return (workspaceNum + (outputs - (math.Mod(workspaceNum, outputs)))) / outputs
+	// ((ws + (no - (ws % no))) / no) - 1 = position in grid that goes up by 1 each time.
+	return ((workspaceNum + (outputs - (math.Mod(workspaceNum, outputs)))) / outputs) - 1
 }
 
 // getActiveOutputCount counts the number of active outputs in the given outputs slice. This could
