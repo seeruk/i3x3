@@ -1,5 +1,5 @@
-hash: 9caf1ffe8bbd419862100a529341b9ed37d6d682a437c93720b4e3f525945fd5
-updated: 2017-08-12T20:53:23.836064429+01:00
+hash: c906e434ab74b71cdd6e94412e2201345ba0868d5e414bdc333ad9bbe0419e54
+updated: 2017-08-13T21:29:36.398495645+01:00
 imports:
 - name: github.com/mattn/go-gtk
   version: f546757330f0b7d13aabef1a8a095c727f6cb571
@@ -11,6 +11,4 @@ imports:
   - pango
 - name: github.com/mattn/go-pointer
   version: 6f8ea376a37a9c9ae33f1898cfc00877f79abfa1
-- name: google.golang.org/grpc
-  version: b8669c35455183da6d5c474ea6e72fbf55183274
 testImports: []

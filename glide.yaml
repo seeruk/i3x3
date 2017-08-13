@@ -2,6 +2,5 @@ package: github.com/SeerUK/i3x3
 import:
 - package: github.com/mattn/go-gtk
   subpackages:
+  - gdk
   - gtk
-- package: google.golang.org/grpc
-  version: ^1.5.1
