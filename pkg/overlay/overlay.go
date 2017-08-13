@@ -80,5 +80,5 @@ func Spawn(environment grid.Environment, size grid.Size, target float64) <-chan 
 		gtk.Main()
 	}()
 
-	return time.After(1 * time.Second)
+	return time.After(500 * time.Millisecond)
 }

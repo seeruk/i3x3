@@ -3,6 +3,8 @@ package grid
 import (
 	"math"
 
+	"fmt"
+
 	"github.com/SeerUK/i3x3/pkg/i3"
 )
 
@@ -88,6 +90,8 @@ func BuildEdgeFuncs(environment Environment, size Size) map[Direction]EdgeFunc {
 	ao := environment.ActiveOutputs
 	co := environment.CurrentOutput
 
+	fmt.Println(x, y)
+
 	return map[Direction]EdgeFunc{
 		// Up detects if we're on the top edge.
 		Up: func(tar float64) bool {
@@ -99,11 +103,11 @@ func BuildEdgeFuncs(environment Environment, size Size) map[Direction]EdgeFunc {
 		},
 		// Left detects if we're on the left edge.
 		Left: func(tar float64) bool {
-			return math.Mod((tar-co)/y, 2) == 0
+			return math.Mod((tar-co)/x, 2) == 0
 		},
 		// Right detects if we're on the right edge.
 		Right: func(tar float64) bool {
-			return math.Mod(((tar-(ao*(x-1)))-co)/y, 2) == 0
+			return math.Mod(((tar-(ao*(x-1)))-co)/x, 2) == 0
 		},
 	}
 }
