@@ -9,9 +9,6 @@ import (
 	"os/exec"
 	"strconv"
 	"time"
-
-	"github.com/mattn/go-gtk/gdk"
-	"github.com/mattn/go-gtk/gtk"
 )
 
 // A direction represents the course that will be taken for movement through workspaces.
@@ -126,12 +123,14 @@ func main() {
 	var move bool
 	var sdir string
 
-	// Start GTK as early as possible.
-	gtk.Init(&os.Args)
+	start := time.Now()
 
 	flag.BoolVar(&move, "move", false, "Whether or not to move the focused container too")
 	flag.StringVar(&sdir, "direction", "down", "The direction to move in (up, down, left, right)")
 	flag.Parse()
+
+	elapsed := time.Since(start)
+	fmt.Println(elapsed)
 
 	dir = direction(sdir)
 
@@ -159,9 +158,6 @@ func main() {
 	maxGridPos := getWorkspaceGridPosition(getMaxWorkspaceNum(workspaces), no)
 	maxRealRows := math.Ceil(maxGridPos / x)
 
-	fmt.Println(maxGridPos)
-	fmt.Println(maxRealRows)
-
 	if maxRealRows > y {
 		y = maxRealRows
 		iy = int(maxRealRows)
@@ -186,66 +182,69 @@ func main() {
 
 	// Try create the WS grid preview. This should be created in another thread so we can still send
 	// the i3-msg commands as quickly as possible.
-	go func() {
-		// Create the window
-		window := gtk.NewWindow(gtk.WINDOW_POPUP)
-		window.SetAcceptFocus(false)
-		window.SetDecorated(false)
-		window.SetKeepAbove(true)
-		window.SetPosition(gtk.WIN_POS_CENTER_ALWAYS)
-		window.SetResizable(false)
-		window.SetSkipTaskbarHint(true)
-		window.SetTitle("i3x3 GTK WSS")
-		window.SetTypeHint(gdk.WINDOW_TYPE_HINT_NOTIFICATION)
-		window.Stick()
-		window.Connect("destroy", gtk.MainQuit)
-
-		// Set main colours
-		window.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#000000"))
-		window.ModifyFG(gtk.STATE_NORMAL, gdk.NewColor("#D3D3D3"))
-
-		table := gtk.NewTable(uint(ix), uint(iy), false)
-		table.SetBorderWidth(3)
-
-		labelCount := ix * iy
-
-		for i := 0; i < labelCount; i++ {
-			ico := int(co)
-			ino := int(no)
-
-			ws := ico + (ino * i)
-
-			label := gtk.NewLabel("")
-			label.SetMarkup(fmt.Sprintf("%d", int(ws)))
-
-			box := gtk.NewEventBox()
-			box.SetSizeRequest(100, 100)
-			box.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#1A1A1A"))
-
-			// Highlight the active workspace
-			if int(target) == ws {
-				box.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#2A2A2A"))
-				label.ModifyFG(gtk.STATE_NORMAL, gdk.NewColor("white"))
-				label.SetMarkup(fmt.Sprintf("<b>%d</b>", ws))
-			}
-
-			box.Add(label)
-
-			row := i / ix
-			col := i - (row * ix)
-
-			urow := uint(row)
-			ucol := uint(col)
-
-			// Attach it to the correct place in the table
-			table.Attach(box, ucol, ucol+1, urow, urow+1, gtk.EXPAND, gtk.EXPAND, 2, 2)
-		}
-
-		window.Add(table)
-		window.ShowAll()
-
-		gtk.Main()
-	}()
+	//go func() {
+	//	// Start GTK as early as possible.
+	//	gtk.Init(&os.Args)
+	//
+	//	// Create the window
+	//	window := gtk.NewWindow(gtk.WINDOW_POPUP)
+	//	window.SetAcceptFocus(false)
+	//	window.SetDecorated(false)
+	//	window.SetKeepAbove(true)
+	//	window.SetPosition(gtk.WIN_POS_CENTER_ALWAYS)
+	//	window.SetResizable(false)
+	//	window.SetSkipTaskbarHint(true)
+	//	window.SetTitle("i3x3 GTK WSS")
+	//	window.SetTypeHint(gdk.WINDOW_TYPE_HINT_NOTIFICATION)
+	//	window.Stick()
+	//	window.Connect("destroy", gtk.MainQuit)
+	//
+	//	// Set main colours
+	//	window.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#000000"))
+	//	window.ModifyFG(gtk.STATE_NORMAL, gdk.NewColor("#D3D3D3"))
+	//
+	//	table := gtk.NewTable(uint(ix), uint(iy), false)
+	//	table.SetBorderWidth(3)
+	//
+	//	labelCount := ix * iy
+	//
+	//	for i := 0; i < labelCount; i++ {
+	//		ico := int(co)
+	//		ino := int(no)
+	//
+	//		ws := ico + (ino * i)
+	//
+	//		label := gtk.NewLabel("")
+	//		label.SetMarkup(fmt.Sprintf("%d", int(ws)))
+	//
+	//		box := gtk.NewEventBox()
+	//		box.SetSizeRequest(100, 100)
+	//		box.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#1A1A1A"))
+	//
+	//		// Highlight the active workspace
+	//		if int(target) == ws {
+	//			box.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#2A2A2A"))
+	//			label.ModifyFG(gtk.STATE_NORMAL, gdk.NewColor("white"))
+	//			label.SetMarkup(fmt.Sprintf("<b>%d</b>", ws))
+	//		}
+	//
+	//		box.Add(label)
+	//
+	//		row := i / ix
+	//		col := i - (row * ix)
+	//
+	//		urow := uint(row)
+	//		ucol := uint(col)
+	//
+	//		// Attach it to the correct place in the table
+	//		table.Attach(box, ucol, ucol+1, urow, urow+1, gtk.EXPAND, gtk.EXPAND, 2, 2)
+	//	}
+	//
+	//	window.Add(table)
+	//	window.ShowAll()
+	//
+	//	gtk.Main()
+	//}()
 
 	if move {
 		err := moveToWorkspace(target)
@@ -255,9 +254,9 @@ func main() {
 	err = switchToWorkspace(target)
 	fatal(err)
 
-	time.Sleep(500 * time.Millisecond)
-
-	gtk.MainQuit()
+	//time.Sleep(500 * time.Millisecond)
+	//
+	//gtk.MainQuit()
 }
 
 // fatal panics if the given error is not nil.
@@ -296,6 +295,8 @@ func switchToWorkspace(workspace float64) error {
 func getOutputs() ([]output, error) {
 	var outputs []output
 
+	start := time.Now()
+
 	out, err := exec.Command("i3-msg", "-t", "get_outputs").Output()
 	if err != nil {
 		return []output{}, err
@@ -306,6 +307,9 @@ func getOutputs() ([]output, error) {
 		return []output{}, err
 	}
 
+	elapsed := time.Since(start)
+	fmt.Println(elapsed)
+
 	return outputs, nil
 }
 
@@ -313,6 +317,8 @@ func getOutputs() ([]output, error) {
 // the visible ones, or focused ones.
 func getWorkspaces() ([]workspace, error) {
 	var workspaces []workspace
+
+	start := time.Now()
 
 	out, err := exec.Command("i3-msg", "-t", "get_workspaces").Output()
 	if err != nil {
@@ -323,6 +329,9 @@ func getWorkspaces() ([]workspace, error) {
 	if err != nil {
 		return []workspace{}, err
 	}
+
+	elapsed := time.Since(start)
+	fmt.Println(elapsed)
 
 	return workspaces, nil
 }

@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
+
+	"time"
 
 	"github.com/SeerUK/i3x3/proto"
 	"google.golang.org/grpc"
@@ -13,6 +16,8 @@ const address = "localhost:7890"
 
 func main() {
 	var sdir string
+
+	start := time.Now()
 
 	flag.StringVar(&sdir, "direction", "down", "The direction to move in (up, down, left, right)")
 	flag.Parse()
@@ -52,6 +57,9 @@ func main() {
 	//rreq := proto.RedistributeWorkspacesRequest{}
 
 	client.SwitchWorkspace(context.Background(), &sreq)
+
+	elapsed := time.Since(start)
+	fmt.Println(elapsed)
 	//client.MoveWorkspace(context.Background(), &mreq)
 	//client.RedistributeWorkspaces(context.Background(), &rreq)
 }
