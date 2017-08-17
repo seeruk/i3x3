@@ -2,12 +2,16 @@
 
 Go-based i3 grid workspace manager, using i3-msg.
 
-
 ## Installation
 
+Install the dependencies for [mattn/go-gtk][1] (i.e. GTK development libraries and tools). Then you
+can simply run the following:
+
 ```
-$ go get -u -v github.com/SeerUK/i3x3
+$ go get -u -v github.com/SeerUK/i3x3/...
 ```
+
+This will install 2 binaries, `i3x3` and `i3x3-fix`.
 
 ## Configuration
 
@@ -26,10 +30,15 @@ bindsym $mod+Control+Mod1+Left exec i3x3 -direction left -move
 bindsym $mod+Control+Mod1+Right exec i3x3 -direction right -move
 bindsym $mod+Control+Mod1+Up exec i3x3 -direction up -move
 bindsym $mod+Control+Mod1+Down exec i3x3 -direction down -move
+
+# redistribute workspaces for i3x3 (e.g. if a new display is connected)
+bindsym $mod+Control+f exec i3x3-fix
 ```
 
 This will allow you to use a 3x3 grid that is separate on each output currently active in i3, using 
-the arrow keys to switch between, or move containers across workspaces.
+the arrow keys to switch between, or move containers across workspaces. You will also have a hotkey
+for "fixing" the workspace layout, this is useful for if you add or remove displays, because of the
+way that i3x3 requires workspaces to be arranged (see below).
 
 ### Grid Size
 
@@ -75,9 +84,10 @@ little as possible about your physical setup.
 
 ## Todo
 
-* Some sort of visualisation when switching?
 * Tests (definitely for the mathy bits!)
 
 ## License
 
 MIT
+
+[1]: https://github.com/mattn/go-gtk
