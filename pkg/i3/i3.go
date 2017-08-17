@@ -98,7 +98,7 @@ func CurrentWorkspace(workspaces []Workspace) float64 {
 	return 1.0
 }
 
-// MaxWorkspaceNum finds the workspace with the highest number in the given slice of workspaces.
+// MaxWorkspace finds the workspace with the highest number in the given slice of workspaces.
 // @todo: Update to only look at the workspaces on the screen that's focused, so the grid isn't
 // inflated when it doesn't need to be.
 func MaxWorkspace(workspaces []Workspace) float64 {

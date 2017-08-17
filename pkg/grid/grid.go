@@ -9,6 +9,7 @@ import (
 // Direction represents the course that will be taken for movement through workspaces.
 type Direction string
 
+// The direction constants are the available directions that workspaces can be traversed via.
 const (
 	Up    Direction = "up"
 	Down  Direction = "down"
