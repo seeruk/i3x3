@@ -79,8 +79,37 @@ equal to the number of outputs you have. If you have 3 monitors, this is how it 
  19 22 25  |  20 23 26  |  21 24 27
 ```
 
-This pattern allows i3x3 to more reliably identify the display you're currently on, while knowing as
-little as possible about your physical setup.
+### But why?
+
+You might be wondering why the workspaces aren't just arranged so that they go up 1 at a time, left
+to right in rows:
+
+```
+ Output 1  |  Output 2 
+---------- | ----------
+ 1  2  3   |  10 11 12 
+ 4  5  6   |  13 14 15
+ 7  8  9   |  16 17 18
+```
+
+Firstly, the pattern that i3x3 uses allows i3x3 to more reliably identify the display you're 
+currently on, while knowing as little as possible about your physical setup. This enables some other
+useful functionality.
+
+Also, i3 starts with a workspace on each output, and the number matches the output the workspace
+is on. This means when you log in, i3x3 is ready to work without having to change anything about the
+workspaces that i3 gives us to start with. With the example given above you would have to "fix" the
+workspaces as soon as i3 starts for i3x3 to work.
+
+Additionally, if i3x3 did use the layout shown above, instead of the layout it actually uses, it 
+would be impossible to dynamically adjust the size of the grid like it can now. For example, with
+the way i3x3 works right now, if you have 2 outputs, 1 display will have all odd numbered workspaces
+on, and the other will have all even numbered workspaces on. Given this, even if you have a 3x3 
+grid (meaning the maximum workspace you could reach by using i3x3 alone would be 18), i3x3 can still
+figure out which display any workspace belongs to (e.g. workspace 32 would belong on output 2). This
+also enables i3x3-fix to work; where would the workspaces for a third display go if you reduced the 
+number of outputs to 2? How would i3x3 automatically increase the grid size to accomodate more 
+workspaces? Things would get very weird, very fast.
 
 ## Todo
 
