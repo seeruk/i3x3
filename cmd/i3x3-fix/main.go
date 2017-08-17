@@ -8,14 +8,16 @@ import (
 
 // i3x3-fix is used to redistribute i3's workspaces in a way that will allow i3x3 to function
 // correctly. It's a particularly useful utility if you work on a laptop and add / remove displays,
-// as i3 will automatically move workspaces around for you.
+// as i3 will automatically move workspaces around for you as you add / remove the displays.
 //
-// i3x3 automatically adjusts it's grid size, expanding to fit in new workspaces, but because of the
-// way it expects workspaces to be arranged, it can get into a bad state when displays are added or
-// removed.
+// i3x3 automatically adjusts it's grid size, expanding to fit in new workspaces outside of the
+// original grid, but because of the way it expects workspaces to be arranged, it can get into a bad
+// state when displays are added or removed. For example, if you have 3 screens, and then one is
+// removed, you may end up in a state where i3x3 will expect odd numbered workspaces to be on screen
+// 1, when they could be on screen 2.
 //
 // When using this tool, your desktop may look a little bit crazy whilst it's re-arranging your
-// workspaces - but it should be quite quick!
+// workspaces - but it should be _very_ quick!
 
 func main() {
 	outputs, err := i3.FindOutputs()
@@ -55,7 +57,7 @@ func main() {
 		}
 	}
 
-	// Move focus back to original workspace
+	// Move focus back to original workspace.
 	i3.SwitchToWorkspace(currentWorkspace)
 }
 
