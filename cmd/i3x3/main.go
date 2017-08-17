@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 
+	"time"
+
 	"github.com/SeerUK/i3x3/pkg/grid"
 	"github.com/SeerUK/i3x3/pkg/i3"
 	"github.com/SeerUK/i3x3/pkg/overlay"
@@ -24,10 +26,12 @@ import (
 
 func main() {
 	var move bool
+	var noOverlay bool
 	var sdir string
 
 	flag.BoolVar(&move, "move", false, "Whether or not to move the focused container too")
 	flag.StringVar(&sdir, "direction", "down", "The direction to move in (up, down, left, right)")
+	flag.BoolVar(&noOverlay, "no-overlay", false, "Used to disable the GTK-based overlay")
 	flag.Parse()
 
 	dir := grid.Direction(sdir)
@@ -69,8 +73,12 @@ func main() {
 	// Retrieve the target workspace that we should be moving to.
 	target := targetFunc()
 
-	// Create the UI overlay, based on the current grid, and target.
-	overlayDone := overlay.Spawn(gridEnv, gridSize, target)
+	var overlayDone <-chan time.Time
+
+	if !noOverlay {
+		// Create the UI overlay, based on the current grid, and target.
+		overlayDone = overlay.Spawn(gridEnv, gridSize, target)
+	}
 
 	if move {
 		// If we need to move the currently focused container, we must do it before switching space,
@@ -85,7 +93,9 @@ func main() {
 	fatal(err)
 
 	// Wait until the overlay timer ends before exiting.
-	<-overlayDone
+	if !noOverlay {
+		<-overlayDone
+	}
 }
 
 // fatal panics if the given error is not nil.
