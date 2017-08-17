@@ -33,6 +33,10 @@ func main() {
 		return activeOutputs[i].Primary || activeOutputs[i].Name < activeOutputs[j].Name
 	})
 
+	// @todo: Before we do this, we should create / move the default workspaces for each screen.
+	// For now, this is the output index. They may disappear once we start moving things, but we
+	// need to ensure we have the right number on each screen to begin with too.
+
 	for _, workspace := range workspaces {
 		ws := float64(workspace.Num)
 		os := float64(activeOutputsNum)
