@@ -27,28 +27,36 @@ func main() {
 	activeOutputs := i3.ActiveOutputs(outputs)
 	activeOutputsNum := len(activeOutputs)
 
+	currentWorkspace := i3.CurrentWorkspaceNum(workspaces)
+
 	// Sort the active outputs so that the primary display is always first (i.e. will always have
 	// workspace 1), and then all others should be in alphabetical order.
 	sort.Slice(activeOutputs, func(i, j int) bool {
 		return activeOutputs[i].Primary || activeOutputs[i].Name < activeOutputs[j].Name
 	})
 
-	// @todo: Before we do this, we should create / move the default workspaces for each screen.
-	// For now, this is the output index. They may disappear once we start moving things, but we
-	// need to ensure we have the right number on each screen to begin with too.
+	// Ensure that each screen at _least_ has it's "initial" workspace on it, this should match the
+	// output number.
+	for i, output := range activeOutputs {
+		i3.MoveWorkspaceToOutput(float64(i+1), output.Name)
+	}
 
+	// Then loop over the existing workspaces, and ensure they're on the display we expect them to
+	// be on, only moving them if they're not in the right place.
 	for _, workspace := range workspaces {
 		ws := float64(workspace.Num)
 		os := float64(activeOutputsNum)
 
-		expected := int(i3.CurrentOutputNum(ws, os))
-		expectedOutput := activeOutputs[expected-1]
+		expected := i3.CurrentOutputNum(ws, os)
+		expectedOutput := activeOutputs[int(expected)-1]
 
 		if expectedOutput.Name != workspace.Output {
-			// We need to move it...
-			i3.MoveWorkspaceToOutput(workspace, expectedOutput)
+			i3.MoveWorkspaceToOutput(ws, expectedOutput.Name)
 		}
 	}
+
+	// Move focus back to original workspace
+	i3.SwitchToWorkspace(currentWorkspace)
 }
 
 func fatal(err error) {

@@ -61,12 +61,12 @@ func SwitchToWorkspace(workspace float64) error {
 
 // MoveWorkspaceToOutput takes a given workspace, and moves it to the given output (used for
 // re-arranging workspaces on differing numbers of outputs).
-func MoveWorkspaceToOutput(workspace Workspace, output Output) error {
+func MoveWorkspaceToOutput(workspaceNum float64, outputName string) error {
 	// Firstly, switch to the workspace that will be moved.
-	SwitchToWorkspace(float64(workspace.Num))
+	SwitchToWorkspace(float64(workspaceNum))
 
 	// Then move the workspace (you can't move a workspace unless you're on it).
-	return exec.Command("i3-msg", "move", "workspace", "to", "output", output.Name).Run()
+	return exec.Command("i3-msg", "move", "workspace", "to", "output", outputName).Run()
 }
 
 // ActiveOutputsNum counts the number of active outputs in the given slice of Outputs. This could
