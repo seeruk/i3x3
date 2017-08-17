@@ -62,10 +62,10 @@ type Environment struct {
 
 // NewEnvironment initialises a new environment, based on the given outputs and workspaces.
 func NewEnvironment(outputs []i3.Output, workspaces []i3.Workspace) Environment {
-	ao := i3.ActiveOutputs(outputs)
-	cw := i3.CurrentWorkspace(workspaces)
-	co := i3.CurrentOutput(cw, ao)
-	mw := i3.MaxWorkspace(workspaces)
+	ao := i3.ActiveOutputsNum(outputs)
+	cw := i3.CurrentWorkspaceNum(workspaces)
+	co := i3.CurrentOutputNum(cw, ao)
+	mw := i3.MaxWorkspaceNum(workspaces)
 
 	return Environment{
 		ActiveOutputs:    ao,
@@ -161,7 +161,7 @@ func WorkspaceGridPosition(workspace float64, outputs float64) float64 {
 		return workspace
 	}
 
-	output := i3.CurrentOutput(workspace, outputs)
+	output := i3.CurrentOutputNum(workspace, outputs)
 
 	return (workspace + (outputs - output)) / outputs
 }

@@ -59,9 +59,25 @@ func SwitchToWorkspace(workspace float64) error {
 	return exec.Command("i3-msg", "workspace", ws).Run()
 }
 
-// ActiveOutputs counts the number of active outputs in the given slice of Outputs. This could
+// MoveWorkspaceToOutput takes a given workspace, and moves it to the given output (used for
+// re-arranging workspaces on differing numbers of outputs).
+func MoveWorkspaceToOutput(workspace Workspace, output Output) error {
+	// Firstly, switch to the workspace that will be moved.
+	SwitchToWorkspace(float64(workspace.Num))
+
+	// Then move the workspace (you can't move a workspace unless you're on it).
+	return exec.Command("i3-msg", "move", "workspace", "to", "output", output.Name).Run()
+}
+
+// ActiveOutputsNum counts the number of active outputs in the given slice of Outputs. This could
 // be, but is unlikely to be 0.
-func ActiveOutputs(outputs []Output) float64 {
+func ActiveOutputsNum(outputs []Output) float64 {
+	return float64(len(ActiveOutputs(outputs)))
+}
+
+// ActiveOutputs returns the active outputs in the given slice of Outputs. This could be, but is
+// unlikely to be empty.
+func ActiveOutputs(outputs []Output) []Output {
 	var activeOutputs []Output
 
 	for _, output := range outputs {
@@ -70,14 +86,14 @@ func ActiveOutputs(outputs []Output) float64 {
 		}
 	}
 
-	return float64(len(activeOutputs))
+	return activeOutputs
 }
 
-// CurrentOutput calculates the current "display number" that i3x3 uses internally based on
+// CurrentOutputNum calculates the current "display number" that i3x3 uses internally based on
 // the workspace number, and the number of outputs. We avoid trying to figure out the physical
 // layout of displays because that will be both complicated, and error prone. This method works best
 // if your only method of navigating workspaces is by using i3x3.
-func CurrentOutput(workspaceNum float64, outputsNum float64) float64 {
+func CurrentOutputNum(workspaceNum float64, outputsNum float64) float64 {
 	mod := math.Mod(workspaceNum, outputsNum)
 
 	if mod == 0 {
@@ -87,8 +103,8 @@ func CurrentOutput(workspaceNum float64, outputsNum float64) float64 {
 	return mod
 }
 
-// CurrentWorkspace gets the currently focused workspace number from the given workspaces.
-func CurrentWorkspace(workspaces []Workspace) float64 {
+// CurrentWorkspaceNum gets the currently focused workspace number from the given workspaces.
+func CurrentWorkspaceNum(workspaces []Workspace) float64 {
 	for _, workspace := range workspaces {
 		if workspace.Focused {
 			return float64(workspace.Num)
@@ -98,10 +114,10 @@ func CurrentWorkspace(workspaces []Workspace) float64 {
 	return 1.0
 }
 
-// MaxWorkspace finds the workspace with the highest number in the given slice of workspaces.
+// MaxWorkspaceNum finds the workspace with the highest number in the given slice of workspaces.
 // @todo: Update to only look at the workspaces on the screen that's focused, so the grid isn't
 // inflated when it doesn't need to be.
-func MaxWorkspace(workspaces []Workspace) float64 {
+func MaxWorkspaceNum(workspaces []Workspace) float64 {
 	max := 0.0
 
 	for _, workspace := range workspaces {
