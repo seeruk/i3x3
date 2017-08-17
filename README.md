@@ -66,9 +66,10 @@ Each output will have it's own unique set of workspaces. If you only use i3x3 to
 workspaces (which is recommended, more on that in a moment) then they will never leave that output.
 
 Each output in i3 starts with a workspace. So, if you have 3 outputs, you'll have 3 workspaces (1, 
-2, and 3). From this point, i3x3 uses that value to identify the other values that are available, 
-along with the number of outputs active in i3. The gap between workspace numbers on each output is
-equal to the number of outputs you have. If you have 3 monitors, this is how it would be arranged:
+2, and 3). i3x3 works out which output a workspace belongs to based on the number of workspaces 
+and the number of outputs. The gap between workspace numbers on each output is equal to the number 
+of outputs you have. Workspaces starts in the top-left corner with the output number. If you have 3
+monitors, this is how it would be arranged:
 
 
 ```
