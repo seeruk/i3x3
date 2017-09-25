@@ -1,14 +1,13 @@
-hash: c906e434ab74b71cdd6e94412e2201345ba0868d5e414bdc333ad9bbe0419e54
-updated: 2017-08-13T21:29:36.398495645+01:00
+hash: efeb4be37f6d5f53aca359deae5159029fcba994dc5dc2733de1c87533f91b98
+updated: 2017-09-25T19:48:49.014849616+01:00
 imports:
-- name: github.com/mattn/go-gtk
-  version: f546757330f0b7d13aabef1a8a095c727f6cb571
+- name: github.com/gotk3/gotk3
+  version: 810ccaa93468e6bcdde7190fedc63a5bafd65b07
+  repo: git@github.com:SeerUK/gotk3.git
   subpackages:
+  - cairo
   - gdk
-  - gdkpixbuf
   - glib
   - gtk
   - pango
-- name: github.com/mattn/go-pointer
-  version: 6f8ea376a37a9c9ae33f1898cfc00877f79abfa1
 testImports: []

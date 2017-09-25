@@ -6,22 +6,48 @@ import (
 	"time"
 
 	"github.com/SeerUK/i3x3/pkg/grid"
-	"github.com/mattn/go-gtk/gdk"
-	"github.com/mattn/go-gtk/gtk"
+	"github.com/gotk3/gotk3/gdk"
+	"github.com/gotk3/gotk3/gtk"
 )
 
 // Spawn creates the grid overlay visualisation. The overlay uses GTK, and runs in a separate
 // thread, which is initialised when it is requested.
-//
-// @todo: Make the colours configurable, probably via environment.
 func Spawn(environment grid.Environment, size grid.Size, target float64) <-chan time.Time {
 	// Try create the WS grid preview. This should be created in another thread so we can still send
 	// the i3-msg commands as quickly as possible.
 	go func() {
 		gtk.Init(&os.Args)
 
+		// Use dark theme.
+		settings, _ := gtk.SettingsGetDefault()
+		settings.SetProperty("gtk-application-prefer-dark-theme", true)
+
+		// Set up custom styles
+		cssProvider, _ := gtk.CssProviderNew()
+		cssProvider.LoadFromData(`
+			.i3x3-window {
+				background: #000000;
+				color: #D3D3D3;
+			}
+
+			.i3x3-grid {
+				background: #2A2A2A;
+				padding: 3px;
+			}
+
+			.i3x3-grid__box {
+				background: #1A1A1A;
+			}
+
+			.i3x3-grid__box--active {
+				background: #2A2A2A;
+				color: #FFFFFF;
+				font-weight: bold;
+			}
+		`)
+
 		// Create the window
-		window := gtk.NewWindow(gtk.WINDOW_POPUP)
+		window, _ := gtk.WindowNew(gtk.WINDOW_POPUP)
 		window.SetAcceptFocus(false)
 		window.SetDecorated(false)
 		window.SetKeepAbove(true)
@@ -33,12 +59,15 @@ func Spawn(environment grid.Environment, size grid.Size, target float64) <-chan 
 		window.Stick()
 		window.Connect("destroy", gtk.MainQuit)
 
-		// Set main colours
-		window.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#000000"))
-		window.ModifyFG(gtk.STATE_NORMAL, gdk.NewColor("#D3D3D3"))
+		windowStyleContext, _ := window.GetStyleContext()
+		windowStyleContext.AddClass("i3x3-window")
+		windowStyleContext.AddProvider(cssProvider, 1)
 
-		table := gtk.NewTable(uint(size.RealX), uint(size.RealY), false)
-		table.SetBorderWidth(3)
+		ogrid, _ := gtk.GridNew()
+
+		ogridStyleContext, _ := ogrid.GetStyleContext()
+		ogridStyleContext.AddClass("i3x3-grid")
+		ogridStyleContext.AddProvider(cssProvider, 1)
 
 		labelCount := size.RealX * size.RealY
 
@@ -48,18 +77,21 @@ func Spawn(environment grid.Environment, size grid.Size, target float64) <-chan 
 
 			ws := ico + (iao * i)
 
-			label := gtk.NewLabel("")
+			label, _ := gtk.LabelNew("")
 			label.SetMarkup(fmt.Sprintf("%d", int(ws)))
 
-			box := gtk.NewEventBox()
-			box.SetSizeRequest(100, 100)
-			box.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#1A1A1A"))
+			box, _ := gtk.EventBoxNew()
+			box.SetSizeRequest(50, 50)
+
+			styles, _ := box.GetStyleContext()
+			styles.AddClass("i3x3-grid__box")
+
+			boxSC, _ := box.GetStyleContext()
+			boxSC.AddProvider(cssProvider, 1)
 
 			// Highlight the active workspace
 			if int(target) == ws {
-				box.ModifyBG(gtk.STATE_NORMAL, gdk.NewColor("#2A2A2A"))
-				label.ModifyFG(gtk.STATE_NORMAL, gdk.NewColor("white"))
-				label.SetMarkup(fmt.Sprintf("<b>%d</b>", ws))
+				styles.AddClass("i3x3-grid__box--active")
 			}
 
 			box.Add(label)
@@ -67,14 +99,11 @@ func Spawn(environment grid.Environment, size grid.Size, target float64) <-chan 
 			row := i / size.RealX
 			col := i - (row * size.RealX)
 
-			urow := uint(row)
-			ucol := uint(col)
-
 			// Attach it to the correct place in the table
-			table.Attach(box, ucol, ucol+1, urow, urow+1, gtk.EXPAND, gtk.EXPAND, 2, 2)
+			ogrid.Attach(box, col, row, 1, 1)
 		}
 
-		window.Add(table)
+		window.Add(ogrid)
 		window.ShowAll()
 
 		gtk.Main()
