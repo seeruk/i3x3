@@ -100,11 +100,15 @@ func BuildEdgeFuncs(environment Environment, size Size) map[Direction]EdgeFunc {
 		},
 		// Left detects if we're on the left edge.
 		Left: func(tar float64) bool {
-			return math.Mod((tar-co)/x, 2) == 0
+			mod := math.Mod((tar-co)/x, 2)
+
+			return math.Trunc(mod) == mod
 		},
 		// Right detects if we're on the right edge.
 		Right: func(tar float64) bool {
-			return math.Mod(((tar-(ao*(x-1)))-co)/x, 2) == 0
+			mod := math.Mod(((tar-(ao*(x-1)))-co)/x, 2)
+
+			return math.Trunc(mod) == mod
 		},
 	}
 }

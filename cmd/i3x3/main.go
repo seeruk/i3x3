@@ -4,7 +4,6 @@ import (
 	"flag"
 	"os"
 	"strconv"
-
 	"time"
 
 	"github.com/SeerUK/i3x3/pkg/grid"
