@@ -37,8 +37,8 @@ func main() {
 		return activeOutputs[i].Primary || activeOutputs[i].Name < activeOutputs[j].Name
 	})
 
-	// Then loop over the existing workspaces, and ensure they're on the display we expect them to
-	// be on, only moving them if they're not in the right place.
+	// Loop over the existing workspaces, and ensure they're on the display we expect them to be on,
+	// only moving them if they're not in the right place.
 	for _, workspace := range workspaces {
 		ws := float64(workspace.Num)
 		os := float64(activeOutputsNum)
