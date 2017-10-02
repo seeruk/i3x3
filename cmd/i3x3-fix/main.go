@@ -34,14 +34,8 @@ func main() {
 	// Sort the active outputs so that the primary display is always first (i.e. will always have
 	// workspace 1), and then all others should be in alphabetical order.
 	sort.Slice(activeOutputs, func(i, j int) bool {
-		return !activeOutputs[i].Primary || activeOutputs[i].Name < activeOutputs[j].Name
+		return activeOutputs[i].Primary || activeOutputs[i].Name < activeOutputs[j].Name
 	})
-
-	// Ensure that each screen at _least_ has it's "initial" workspace on it, this should match the
-	// output number.
-	for i, output := range activeOutputs {
-		i3.MoveWorkspaceToOutput(float64(i+1), output.Name)
-	}
 
 	// Then loop over the existing workspaces, and ensure they're on the display we expect them to
 	// be on, only moving them if they're not in the right place.
