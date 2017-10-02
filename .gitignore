@@ -21,4 +21,4 @@ main
 cmd/i3x3/*
 !cmd/i3x3/main.go
 cmd/i3x3-fix/*
-!cmd/i3x3/main.go
+!cmd/i3x3-fix/main.go
