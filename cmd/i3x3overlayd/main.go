@@ -2,10 +2,15 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 
+	"github.com/BurntSushi/xgb"
+	"github.com/BurntSushi/xgb/randr"
+	"github.com/BurntSushi/xgb/xproto"
+	"github.com/SeerUK/i3x3/pkg/grid"
 	"github.com/SeerUK/i3x3/pkg/overlayd"
 )
 
@@ -15,41 +20,36 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, os.Kill)
 
-	environment, err := overlayd.FindEnvironment()
+	environmentState := &overlayd.EnvironmentState{}
+
+	_, err := updateEnvironmentState(environmentState)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	environmentState := &overlayd.EnvironmentState{}
-	environmentState.SetEnvironment(environment)
+	x, err := prepareXEnvironment()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	log.Printf("Outputs: %v\n", environment.ActiveOutputs)
-	log.Printf("Output: %v\n", environment.CurrentOutput)
-	log.Printf("Workspace: %v\n", environment.CurrentWorkspace)
+	envChan := make(chan struct{})
+	xevChan := make(chan struct{})
+
+	go xevThread(x, xevChan)
+	go envThread(environmentState, xevChan, envChan)
+	go sigThread(signals, cfn)
 
 	go func() {
-		// Wait for signal
-		<-signals
-
-		// Cancel the context
-		cfn()
+		for {
+			// @todo: Temporary.
+			<-envChan
+		}
 	}()
-
-	// @TODO: Grid environment.
-	// Prepare the environment, and allow this information to be updated (protected by a RWMutex).
-	// But what updates it? Is that going to be i3x3fix? Is it going to be a simple command? It's
-	// likely to be exposed via a gRPC endpoint I guess, so maybe i3x3fix should be the one to run
-	// it, but then it's polluting what it normally does.
-	//
-	// How about instead, we just build in the ability to kill old versions of the daemon, similar
-	// to the way that imwheel works (e.g. a --kill flag?). It means we can use the flags package
-	// at least, because it is very simple. We just need to investigate killing a process in code.
-	// This approach will also help keep the gRPC messages focused solely on movement within the
-	// grid too.
 
 	// @TODO: GTK thread.
 	// Look at how we did this in cnotifyd. That handles multi-threaded GTK pretty well, and it was
-	// also pretty straightforward too - and is also using gotk3.
+	// also pretty straightforward too - and is also using gotk3. Should accept messages to control
+	// the state of the GUI, i.e. show / hide a grid.
 
 	// @TODO: Message handling thread.
 	// Accept incoming messages to show overlay. This should contain the grid size, and the
@@ -70,4 +70,82 @@ func main() {
 
 	// Wait for context cancellation (from signal)
 	<-ctx.Done()
+}
+
+func envThread(state *overlayd.EnvironmentState, in chan struct{}, out chan struct{}) {
+	for {
+		// Wait for an event, then update the grid environment.
+		<-in
+
+		_, err := updateEnvironmentState(state)
+		if err != nil {
+			log.Println(err)
+		} else {
+			out <- struct{}{}
+		}
+	}
+}
+
+func sigThread(signals chan os.Signal, cfn context.CancelFunc) {
+	// Wait for signal
+	<-signals
+
+	// Cancel the context
+	cfn()
+}
+
+func xevThread(x *xgb.Conn, out chan struct{}) {
+	for {
+		_, xerr := x.WaitForEvent()
+		if xerr != nil {
+			log.Printf("error waiting for event: %v\n", xerr)
+			continue
+		}
+
+		out <- struct{}{}
+	}
+}
+
+// prepareXEnvironment sets up the connection to the X server, and prepare our randr configuration
+// so we can act appropriately whenever an event happens.
+func prepareXEnvironment() (*xgb.Conn, error) {
+	x, err := xgb.NewConn()
+	if err != nil {
+		return nil, fmt.Errorf("error establishing X connectiong: %v", err)
+	}
+
+	err = randr.Init(x)
+	if err != nil {
+		return nil, fmt.Errorf("error initialising randr: %v", err)
+	}
+
+	// Get the root window on the default screen.
+	root := xproto.Setup(x).DefaultScreen(x).Root
+
+	// Choose which events we watch for.
+	events := randr.NotifyMaskScreenChange
+
+	// Subscribe to some events.
+	err = randr.SelectInputChecked(x, root, uint16(events)).Check()
+	if err != nil {
+		return nil, fmt.Errorf("error subscribing to events: %v", err)
+	}
+
+	return x, nil
+}
+
+// updateEnvironmentState updates the current grid environment state.
+func updateEnvironmentState(state *overlayd.EnvironmentState) (grid.Environment, error) {
+	environment, err := overlayd.FindEnvironment()
+	if err != nil {
+		return environment, fmt.Errorf("error finding grid environment: %v", err)
+	}
+
+	state.SetEnvironment(environment)
+
+	log.Printf("Outputs: %v\n", environment.ActiveOutputs)
+	log.Printf("Output: %v\n", environment.CurrentOutput)
+	log.Printf("Workspace: %v\n", environment.CurrentWorkspace)
+
+	return environment, nil
 }
