@@ -1,9 +1,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
+
 	"os"
 	"os/signal"
 
@@ -15,19 +15,19 @@ import (
 )
 
 func main() {
-	ctx, cfn := context.WithCancel(context.Background())
-
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, os.Kill)
 
 	environmentState := &overlayd.EnvironmentState{}
 
+	// Set up the initial environment.
 	_, err := updateEnvironmentState(environmentState)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	x, err := prepareXEnvironment()
+	// Initialise our X connection.
+	x, err := initialiseXEnvironment()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,7 +37,6 @@ func main() {
 
 	go xevThread(x, xevChan)
 	go envThread(environmentState, xevChan, envChan)
-	go sigThread(signals, cfn)
 
 	go func() {
 		for {
@@ -68,15 +67,15 @@ func main() {
 	// affects performance - as this may be enough on it's own to keep it simple, and improve the
 	// perceived performance.
 
-	// Wait for context cancellation (from signal)
-	<-ctx.Done()
+	sig := <-signals
+
+	log.Printf("caught signal: %v\n", sig)
 }
 
 // envThread is an endless loop that watches for changes in the given `in` thread, and then updates
 // the environment state.
 func envThread(state *overlayd.EnvironmentState, in chan struct{}, out chan struct{}) {
 	for {
-		// Wait for an event, then update the grid environment.
 		<-in
 
 		_, err := updateEnvironmentState(state)
@@ -86,16 +85,6 @@ func envThread(state *overlayd.EnvironmentState, in chan struct{}, out chan stru
 			out <- struct{}{}
 		}
 	}
-}
-
-// sigThread waits for a signal from the given signal channel, and then calls the given context
-// cancellation function.
-func sigThread(signals chan os.Signal, cfn context.CancelFunc) {
-	// Wait for signal
-	<-signals
-
-	// Cancel the context
-	cfn()
 }
 
 // xevThread waits for x events to occur, and then notifies the given `out` thread.
@@ -111,9 +100,9 @@ func xevThread(x *xgb.Conn, out chan struct{}) {
 	}
 }
 
-// prepareXEnvironment sets up the connection to the X server, and prepare our randr configuration
-// so we can act appropriately whenever an event happens.
-func prepareXEnvironment() (*xgb.Conn, error) {
+// initialiseXEnvironment sets up the connection to the X server, and prepare our randr
+// configuration so we can act appropriately whenever an event happens.
+func initialiseXEnvironment() (*xgb.Conn, error) {
 	x, err := xgb.NewConn()
 	if err != nil {
 		return nil, fmt.Errorf("error establishing X connectiong: %v", err)
