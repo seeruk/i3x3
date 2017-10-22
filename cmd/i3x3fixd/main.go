@@ -1,13 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"sort"
-
 	"os"
 	"os/signal"
-
-	"fmt"
+	"sort"
 
 	"github.com/BurntSushi/xgb"
 	"github.com/BurntSushi/xgb/randr"
@@ -48,6 +46,7 @@ func main() {
 	log.Printf("caught signal: %v\n", sig)
 }
 
+// fatal checks if the given err is nil, and if it is, logs the err and exits the application.
 func fatal(err error) {
 	if err != nil {
 		log.Fatal(err)
@@ -85,8 +84,12 @@ func initialiseXEnvironment() (*xgb.Conn, error) {
 // fixThread waits for signals from the given `in` channel, and when it receives one proceeds to
 // update the workspace distribution so that i3x3 can continue to function correctly.
 func fixThread(in chan struct{}) {
+	log.Println("fix: waiting for notifications...")
+
 	for {
 		<-in
+
+		log.Println("fix: got notification")
 
 		outputs, err := i3.FindOutputs()
 		fatal(err)
@@ -121,18 +124,26 @@ func fixThread(in chan struct{}) {
 
 		// Move focus back to original workspace.
 		i3.SwitchToWorkspace(currentWorkspace)
+
+		log.Println("fix: done fixing")
 	}
 }
 
 // xevThread waits for x events to occur, and then notifies the given `out` thread.
 func xevThread(x *xgb.Conn, out chan struct{}) {
+	log.Println("xev: waiting for x events...")
+
 	for {
-		_, xerr := x.WaitForEvent()
+		ev, xerr := x.WaitForEvent()
 		if xerr != nil {
 			log.Printf("error waiting for event: %v\n", xerr)
 			continue
 		}
 
+		log.Printf("xev: got event: %+v\n", ev)
+
 		out <- struct{}{}
+
+		log.Println("xev: sent notification")
 	}
 }
