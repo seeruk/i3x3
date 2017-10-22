@@ -1,12 +1,21 @@
 package main
 
 import (
+	"log"
 	"sort"
 
+	"os"
+	"os/signal"
+
+	"fmt"
+
+	"github.com/BurntSushi/xgb"
+	"github.com/BurntSushi/xgb/randr"
+	"github.com/BurntSushi/xgb/xproto"
 	"github.com/SeerUK/i3x3/pkg/i3"
 )
 
-// i3x3-fix is used to redistribute i3's workspaces in a way that will allow i3x3 to function
+// i3x3fixd is used to redistribute i3's workspaces in a way that will allow i3x3 to function
 // correctly. It's a particularly useful utility if you work on a laptop and add / remove displays,
 // as i3 will automatically move workspaces around for you as you add / remove the displays.
 //
@@ -20,43 +29,110 @@ import (
 // workspaces - but it should be _very_ quick!
 
 func main() {
-	outputs, err := i3.FindOutputs()
-	fatal(err)
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, os.Kill)
 
-	workspaces, err := i3.FindWorkspaces()
-	fatal(err)
-
-	activeOutputs := i3.ActiveOutputs(outputs)
-	activeOutputsNum := len(activeOutputs)
-
-	currentWorkspace := i3.CurrentWorkspaceNum(workspaces)
-
-	// Sort the active outputs so that the primary display is always first (i.e. will always have
-	// workspace 1), and then all others should be in alphabetical order.
-	sort.Slice(activeOutputs, func(i, j int) bool {
-		return activeOutputs[i].Primary || activeOutputs[i].Name < activeOutputs[j].Name
-	})
-
-	// Loop over the existing workspaces, and ensure they're on the display we expect them to be on,
-	// only moving them if they're not in the right place.
-	for _, workspace := range workspaces {
-		ws := float64(workspace.Num)
-		os := float64(activeOutputsNum)
-
-		expected := i3.CurrentOutputNum(ws, os)
-		expectedOutput := activeOutputs[int(expected)-1]
-
-		if expectedOutput.Name != workspace.Output {
-			i3.MoveWorkspaceToOutput(ws, expectedOutput.Name)
-		}
+	// Initialise our X connection.
+	x, err := initialiseXEnvironment()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	// Move focus back to original workspace.
-	i3.SwitchToWorkspace(currentWorkspace)
+	xevChan := make(chan struct{})
+
+	go xevThread(x, xevChan)
+	go fixThread(xevChan)
+
+	sig := <-signals
+
+	log.Printf("caught signal: %v\n", sig)
 }
 
 func fatal(err error) {
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+	}
+}
+
+// initialiseXEnvironment sets up the connection to the X server, and prepare our randr
+// configuration so we can act appropriately whenever an event happens.
+func initialiseXEnvironment() (*xgb.Conn, error) {
+	x, err := xgb.NewConn()
+	if err != nil {
+		return nil, fmt.Errorf("error establishing X connectiong: %v", err)
+	}
+
+	err = randr.Init(x)
+	if err != nil {
+		return nil, fmt.Errorf("error initialising randr: %v", err)
+	}
+
+	// Get the root window on the default screen.
+	root := xproto.Setup(x).DefaultScreen(x).Root
+
+	// Choose which events we watch for.
+	events := randr.NotifyMaskScreenChange
+
+	// Subscribe to some events.
+	err = randr.SelectInputChecked(x, root, uint16(events)).Check()
+	if err != nil {
+		return nil, fmt.Errorf("error subscribing to events: %v", err)
+	}
+
+	return x, nil
+}
+
+// fixThread waits for signals from the given `in` channel, and when it receives one proceeds to
+// update the workspace distribution so that i3x3 can continue to function correctly.
+func fixThread(in chan struct{}) {
+	for {
+		<-in
+
+		outputs, err := i3.FindOutputs()
+		fatal(err)
+
+		workspaces, err := i3.FindWorkspaces()
+		fatal(err)
+
+		activeOutputs := i3.ActiveOutputs(outputs)
+		activeOutputsNum := len(activeOutputs)
+
+		currentWorkspace := i3.CurrentWorkspaceNum(workspaces)
+
+		// Sort the active outputs so that the primary display is always first (i.e. will always have
+		// workspace 1), and then all others should be in alphabetical order.
+		sort.Slice(activeOutputs, func(i, j int) bool {
+			return activeOutputs[i].Primary || activeOutputs[i].Name < activeOutputs[j].Name
+		})
+
+		// Loop over the existing workspaces, and ensure they're on the display we expect them to be on,
+		// only moving them if they're not in the right place.
+		for _, workspace := range workspaces {
+			ws := float64(workspace.Num)
+			os := float64(activeOutputsNum)
+
+			expected := i3.CurrentOutputNum(ws, os)
+			expectedOutput := activeOutputs[int(expected)-1]
+
+			if expectedOutput.Name != workspace.Output {
+				i3.MoveWorkspaceToOutput(ws, expectedOutput.Name)
+			}
+		}
+
+		// Move focus back to original workspace.
+		i3.SwitchToWorkspace(currentWorkspace)
+	}
+}
+
+// xevThread waits for x events to occur, and then notifies the given `out` thread.
+func xevThread(x *xgb.Conn, out chan struct{}) {
+	for {
+		_, xerr := x.WaitForEvent()
+		if xerr != nil {
+			log.Printf("error waiting for event: %v\n", xerr)
+			continue
+		}
+
+		out <- struct{}{}
 	}
 }
