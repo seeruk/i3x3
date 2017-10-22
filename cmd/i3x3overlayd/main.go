@@ -72,6 +72,8 @@ func main() {
 	<-ctx.Done()
 }
 
+// envThread is an endless loop that watches for changes in the given `in` thread, and then updates
+// the environment state.
 func envThread(state *overlayd.EnvironmentState, in chan struct{}, out chan struct{}) {
 	for {
 		// Wait for an event, then update the grid environment.
@@ -86,6 +88,8 @@ func envThread(state *overlayd.EnvironmentState, in chan struct{}, out chan stru
 	}
 }
 
+// sigThread waits for a signal from the given signal channel, and then calls the given context
+// cancellation function.
 func sigThread(signals chan os.Signal, cfn context.CancelFunc) {
 	// Wait for signal
 	<-signals
@@ -94,6 +98,7 @@ func sigThread(signals chan os.Signal, cfn context.CancelFunc) {
 	cfn()
 }
 
+// xevThread waits for x events to occur, and then notifies the given `out` thread.
 func xevThread(x *xgb.Conn, out chan struct{}) {
 	for {
 		_, xerr := x.WaitForEvent()
