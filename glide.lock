@@ -1,6 +1,8 @@
-hash: efeb4be37f6d5f53aca359deae5159029fcba994dc5dc2733de1c87533f91b98
-updated: 2017-09-25T19:48:49.014849616+01:00
+hash: b2ed0ab5c8202e49d5ebd3f9f1127f05e069cb06fb86c476bde318621d8caf03
+updated: 2017-10-22T19:27:30.728157959+01:00
 imports:
+- name: github.com/BurntSushi/xgb
+  version: 27f122750802c950b2c869a5b63dafcf590ced95
 - name: github.com/gotk3/gotk3
   version: 810ccaa93468e6bcdde7190fedc63a5bafd65b07
   repo: git@github.com:SeerUK/gotk3.git
