@@ -102,26 +102,22 @@ func fixThread(in chan struct{}) {
 
 		currentWorkspace := i3.CurrentWorkspaceNum(workspaces)
 
-		fmt.Println("Before", activeOutputs)
-
 		// Sort the active outputs so that the primary display is always first.
 		sort.Slice(activeOutputs, func(i, j int) bool {
 			return activeOutputs[i].Primary
 		})
 
-		fmt.Println("After", activeOutputs)
-
 		// Loop over the existing workspaces, and ensure they're on the display we expect them to be on,
 		// only moving them if they're not in the right place.
 		for _, workspace := range workspaces {
-			ws := float64(workspace.Num)
-			os := float64(activeOutputsNum)
+			workspaces := float64(workspace.Num)
+			outputs := float64(activeOutputsNum)
 
-			expected := i3.CurrentOutputNum(ws, os)
+			expected := i3.CurrentOutputNum(workspaces, outputs)
 			expectedOutput := activeOutputs[int(expected)-1]
 
 			if expectedOutput.Name != workspace.Output {
-				i3.MoveWorkspaceToOutput(ws, expectedOutput.Name)
+				i3.MoveWorkspaceToOutput(workspaces, expectedOutput.Name)
 			}
 		}
 
