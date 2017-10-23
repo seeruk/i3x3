@@ -102,11 +102,14 @@ func fixThread(in chan struct{}) {
 
 		currentWorkspace := i3.CurrentWorkspaceNum(workspaces)
 
-		// Sort the active outputs so that the primary display is always first (i.e. will always have
-		// workspace 1), and then all others should be in alphabetical order.
+		fmt.Println("Before", activeOutputs)
+
+		// Sort the active outputs so that the primary display is always first.
 		sort.Slice(activeOutputs, func(i, j int) bool {
-			return activeOutputs[i].Primary || activeOutputs[i].Name < activeOutputs[j].Name
+			return activeOutputs[i].Primary
 		})
+
+		fmt.Println("After", activeOutputs)
 
 		// Loop over the existing workspaces, and ensure they're on the display we expect them to be on,
 		// only moving them if they're not in the right place.
