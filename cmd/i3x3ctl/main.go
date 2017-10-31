@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+    "time"
 
 	"github.com/SeerUK/i3x3/pkg/grid"
 	"github.com/SeerUK/i3x3/pkg/i3"
+    "github.com/SeerUK/i3x3/pkg/overlay"
 	"github.com/SeerUK/i3x3/pkg/overlayd"
 	"github.com/SeerUK/i3x3/pkg/proto"
 	"google.golang.org/grpc"
@@ -89,12 +91,12 @@ func main() {
 		})
 	}
 
-	//var overlayDone <-chan time.Time
+	var overlayDone <-chan time.Time
 
-	//if !noOverlay {
-	//	// Create the UI overlay, based on the current grid, and target.
-	//	overlayDone = overlay.Spawn(gridEnv, gridSize, target)
-	//}
+	if !noOverlay {
+		// Create the UI overlay, based on the current grid, and target.
+		overlayDone = overlay.Spawn(gridEnv, gridSize, target)
+	}
 
 	if move {
 		// If we need to move the currently focused container, we must do it before switching space,
@@ -109,9 +111,9 @@ func main() {
 	fatal(err)
 
 	// Wait until the overlay timer ends before exiting.
-	//if !noOverlay {
-	//	<-overlayDone
-	//}
+	if !noOverlay {
+		<-overlayDone
+	}
 }
 
 // fatal panics if the given error is not nil.
