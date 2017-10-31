@@ -112,7 +112,7 @@ func enqueueMessages(ctx context.Context, messages <-chan proto.OverlaydCommand)
 	}
 }
 
-func processMessage(message proto.OverlaydCommand) {
+func processMessage(message proto.OverlaydCommand) bool {
 	log.Println(message)
 
 	environment, err := overlayd.FindEnvironment()
@@ -211,8 +211,14 @@ func processMessage(message proto.OverlaydCommand) {
 	window.ShowAll()
 
 	go func() {
+		// @todo: This is causing a panic, because it's unexpected. We might need to make the window
+		// a global or something? Then we can use glib.IdleAdd to handle the destruction of the
+		// window. We need to ensure we have some proper cancellation set up though. It'll need to
+		// use a timer that can be instantly resolved if a new window is about to be created.
 		time.Sleep(500 * time.Millisecond)
 
 		window.Destroy()
 	}()
+
+	return false
 }
