@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/SeerUK/i3x3/pkg/grid"
 	"github.com/SeerUK/i3x3/pkg/i3"
-	"github.com/SeerUK/i3x3/pkg/overlay"
 	"github.com/SeerUK/i3x3/pkg/overlayd"
 	"github.com/SeerUK/i3x3/pkg/proto"
 	"google.golang.org/grpc"
@@ -37,21 +35,6 @@ func main() {
 	flag.StringVar(&sdir, "direction", "down", "The direction to move in (up, down, left, right)")
 	flag.BoolVar(&noOverlay, "no-overlay", false, "Used to disable the GTK-based overlay")
 	flag.Parse()
-
-	if !noOverlay {
-		ctx := context.Background()
-
-		conn, err := grpc.Dial(fmt.Sprintf(":%v", overlayd.Port), grpc.WithInsecure())
-		fatal(err)
-
-		defer conn.Close()
-
-		overlaydClient := proto.NewOverlaydServerClient(conn)
-		overlaydClient.SendCommand(ctx, &proto.OverlaydCommand{
-			Direction: sdir,
-			Move:      move,
-		})
-	}
 
 	dir := grid.Direction(sdir)
 
@@ -92,12 +75,26 @@ func main() {
 	// Retrieve the target workspace that we should be moving to.
 	target := targetFunc()
 
-	var overlayDone <-chan time.Time
-
 	if !noOverlay {
-		// Create the UI overlay, based on the current grid, and target.
-		overlayDone = overlay.Spawn(gridEnv, gridSize, target)
+		ctx := context.Background()
+
+		conn, err := grpc.Dial(fmt.Sprintf(":%v", overlayd.Port), grpc.WithInsecure())
+		fatal(err)
+
+		defer conn.Close()
+
+		overlaydClient := proto.NewOverlaydServerClient(conn)
+		overlaydClient.SendCommand(ctx, &proto.OverlaydCommand{
+			Target: uint32(target),
+		})
 	}
+
+	//var overlayDone <-chan time.Time
+
+	//if !noOverlay {
+	//	// Create the UI overlay, based on the current grid, and target.
+	//	overlayDone = overlay.Spawn(gridEnv, gridSize, target)
+	//}
 
 	if move {
 		// If we need to move the currently focused container, we must do it before switching space,
@@ -112,9 +109,9 @@ func main() {
 	fatal(err)
 
 	// Wait until the overlay timer ends before exiting.
-	if !noOverlay {
-		<-overlayDone
-	}
+	//if !noOverlay {
+	//	<-overlayDone
+	//}
 }
 
 // fatal panics if the given error is not nil.

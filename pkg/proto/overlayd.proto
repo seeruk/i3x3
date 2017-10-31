@@ -5,8 +5,7 @@ package proto;
 // OverlaydCommand represents a command for i3x3, mirroring the properties relevant for
 // i3x3overlayd, the command is used to move around the grid overlay appropriately.
 message OverlaydCommand {
-    string direction = 1;
-    bool move = 2;
+    uint32 target = 1;
 }
 
 // OverlaydCommandResponse represents the result of a command for i3x3overlayd.
