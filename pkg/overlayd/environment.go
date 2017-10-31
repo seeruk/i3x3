@@ -33,10 +33,6 @@ func (es *EnvironmentState) SetEnvironment(environment grid.Environment) {
 
 // FindEnvironment fetches the current environment from i3.
 func FindEnvironment() (grid.Environment, error) {
-	// @todo: Interface for i3 interaction?
-	// Maybe we should have an interface for interactions with i3? We can't easily test this now
-	// without really messing with the i3 package and doing some weird patching using globals again.
-
 	outputs, err := i3.FindOutputs()
 	if err != nil {
 		return grid.Environment{}, err
