@@ -214,7 +214,6 @@ func processMessage(message proto.OverlaydCommand) {
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 
-		window.Hide()
-		window.Close()
+		window.Destroy()
 	}()
 }
