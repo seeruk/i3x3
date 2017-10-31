@@ -3,3 +3,5 @@ import:
 - package: github.com/gotk3/gotk3
   repo: git@github.com:SeerUK/gotk3.git
 - package: github.com/BurntSushi/xgb
+- package: google.golang.org/grpc
+  version: ^1.7.1
