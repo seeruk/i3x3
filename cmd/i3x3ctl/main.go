@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -9,6 +11,9 @@ import (
 	"github.com/SeerUK/i3x3/pkg/grid"
 	"github.com/SeerUK/i3x3/pkg/i3"
 	"github.com/SeerUK/i3x3/pkg/overlay"
+	"github.com/SeerUK/i3x3/pkg/overlayd"
+	"github.com/SeerUK/i3x3/pkg/proto"
+	"google.golang.org/grpc"
 )
 
 // i3x3 is a workspace grid management utility for i3. It allows you to navigate workspaces by
@@ -32,6 +37,21 @@ func main() {
 	flag.StringVar(&sdir, "direction", "down", "The direction to move in (up, down, left, right)")
 	flag.BoolVar(&noOverlay, "no-overlay", false, "Used to disable the GTK-based overlay")
 	flag.Parse()
+
+	if !noOverlay {
+		ctx := context.Background()
+
+		conn, err := grpc.Dial(fmt.Sprintf(":%v", overlayd.Port), grpc.WithInsecure())
+		fatal(err)
+
+		defer conn.Close()
+
+		overlaydClient := proto.NewOverlaydServerClient(conn)
+		overlaydClient.SendCommand(ctx, &proto.OverlaydCommand{
+			Direction: sdir,
+			Move:      move,
+		})
+	}
 
 	dir := grid.Direction(sdir)
 

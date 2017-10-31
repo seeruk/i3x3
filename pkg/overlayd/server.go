@@ -23,7 +23,9 @@ func NewServer(messages chan<- proto.OverlaydCommand) *Server {
 }
 
 // SendCommand sends a command to the overlayd server.
-func (s *Server) SendCommand(context.Context, *proto.OverlaydCommand) (*proto.OverlaydCommandResponse, error) {
+func (s *Server) SendCommand(ctx context.Context, message *proto.OverlaydCommand) (*proto.OverlaydCommandResponse, error) {
+	s.messages <- *message
+
 	return &proto.OverlaydCommandResponse{
 		Success: true,
 	}, nil
