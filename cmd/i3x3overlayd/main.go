@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-
 	"time"
 
 	"github.com/SeerUK/i3x3/pkg/grid"
