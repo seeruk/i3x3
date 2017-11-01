@@ -41,6 +41,7 @@ func main() {
 	<-guiDone
 }
 
+// rpcThread handles accepting new messages via gRPC from i3x3ctl.
 func rpcThread(ctx context.Context, messages chan<- proto.OverlaydCommand) <-chan struct{} {
 	done := make(chan struct{})
 
@@ -73,16 +74,39 @@ func rpcThread(ctx context.Context, messages chan<- proto.OverlaydCommand) <-cha
 	return done
 }
 
+// guiThread handles all GUI operations. Messages end up in here to be processed.
 func guiThread(ctx context.Context, messages <-chan proto.OverlaydCommand) <-chan struct{} {
 	done := make(chan struct{})
 
 	go func() {
 		gtk.Init(nil)
 
+		// Use dark theme.
 		settings, _ := gtk.SettingsGetDefault()
 		settings.SetProperty("gtk-application-prefer-dark-theme", true)
 
-		go enqueueMessages(ctx, messages)
+		window := buildWindow()
+
+		// To notify multiple channels when a message has been received, we make some more channels
+		enqueueChan := make(chan proto.OverlaydCommand)
+		windowChan := make(chan struct{})
+
+		// Then, we fan-out, emitting messages to each of those channels when a new message comes in
+		go func() {
+			for {
+				select {
+				case message := <-messages:
+					// This could be a little more elegant...
+					enqueueChan <- message
+					windowChan <- struct{}{}
+				case <-ctx.Done():
+					break
+				}
+			}
+		}()
+
+		go enqueueMessages(ctx, window, enqueueChan)
+		go windowReaper(ctx, window, windowChan)
 
 		go func() {
 			select {
@@ -101,40 +125,78 @@ func guiThread(ctx context.Context, messages <-chan proto.OverlaydCommand) <-cha
 	return done
 }
 
-func enqueueMessages(ctx context.Context, messages <-chan proto.OverlaydCommand) {
+// enqueueMessages processes incoming messages, handling updating the overlay window.
+func enqueueMessages(ctx context.Context, window *gtk.Window, messages <-chan proto.OverlaydCommand) {
 	for {
 		select {
 		case message := <-messages:
-			glib.IdleAdd(processMessage, message)
+			glib.IdleAdd(processMessage, window, message)
 		case <-ctx.Done():
 			break
 		}
 	}
 }
 
-func processMessage(message proto.OverlaydCommand) bool {
-	log.Println(message)
+// windowReaper waits for a set amount of time before hiding the overlay window. If another message
+// comes in whilst the window is open, it's life is extended.
+func windowReaper(ctx context.Context, window *gtk.Window, messages <-chan struct{}) {
+	var timer *time.Timer
 
-	environment, err := overlayd.FindEnvironment()
-	if err != nil {
-		log.Fatal(err)
+	for {
+		select {
+		case <-messages:
+			if timer != nil {
+				timer.Stop()
+			}
+
+			timer = time.AfterFunc(500*time.Millisecond, func() {
+				glib.IdleAdd(window.Hide)
+			})
+		case <-ctx.Done():
+			break
+		}
 	}
+}
 
-	size := grid.NewSize(environment, 3, 3)
-	target := float64(message.Target)
-
-	// Use dark theme.
-	settings, _ := gtk.SettingsGetDefault()
-	settings.SetProperty("gtk-application-prefer-dark-theme", true)
-
-	// Set up custom styles
+// buildWindow creates the basic window that our overlay grid goes into.
+func buildWindow() *gtk.Window {
 	cssProvider, _ := gtk.CssProviderNew()
 	cssProvider.LoadFromData(`
 			.i3x3-window {
 				background: #000000;
 				color: #D3D3D3;
 			}
+		`)
 
+	window, _ := gtk.WindowNew(gtk.WINDOW_POPUP)
+	window.SetAcceptFocus(false)
+	window.SetDecorated(false)
+	window.SetKeepAbove(true)
+	window.SetPosition(gtk.WIN_POS_CENTER_ALWAYS)
+	window.SetResizable(false)
+	window.SetSkipTaskbarHint(true)
+	window.SetTitle("i3x3 GTK WSS")
+	window.SetTypeHint(gdk.WINDOW_TYPE_HINT_NOTIFICATION)
+	window.Stick()
+
+	windowStyleContext, _ := window.GetStyleContext()
+	windowStyleContext.AddClass("i3x3-window")
+	windowStyleContext.AddProvider(cssProvider, 1)
+
+	return window
+}
+
+// processMessage takes a message and updates the window UI appropriately, finally showing the
+// window (if it's not already visible) at the end.
+func processMessage(window *gtk.Window, message proto.OverlaydCommand) bool {
+	environment, err := overlayd.FindEnvironment()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Set up custom styles
+	cssProvider, _ := gtk.CssProviderNew()
+	cssProvider.LoadFromData(`
 			.i3x3-grid {
 				background: #2A2A2A;
 				padding: 3px;
@@ -151,21 +213,13 @@ func processMessage(message proto.OverlaydCommand) bool {
 			}
 		`)
 
-	// Create the window
-	window, _ := gtk.WindowNew(gtk.WINDOW_POPUP)
-	window.SetAcceptFocus(false)
-	window.SetDecorated(false)
-	window.SetKeepAbove(true)
-	window.SetPosition(gtk.WIN_POS_CENTER_ALWAYS)
-	window.SetResizable(false)
-	window.SetSkipTaskbarHint(true)
-	window.SetTitle("i3x3 GTK WSS")
-	window.SetTypeHint(gdk.WINDOW_TYPE_HINT_NOTIFICATION)
-	window.Stick()
+	size := grid.NewSize(environment, 3, 3)
+	target := float64(message.Target)
 
-	windowStyleContext, _ := window.GetStyleContext()
-	windowStyleContext.AddClass("i3x3-window")
-	windowStyleContext.AddProvider(cssProvider, 1)
+	// Remove all children...
+	window.GetChildren().Foreach(func(item interface{}) {
+		window.Remove(item.(*gtk.Widget))
+	})
 
 	ogrid, _ := gtk.GridNew()
 
@@ -209,16 +263,6 @@ func processMessage(message proto.OverlaydCommand) bool {
 
 	window.Add(ogrid)
 	window.ShowAll()
-
-	go func() {
-		// @todo: This is causing a panic, because it's unexpected. We might need to make the window
-		// a global or something? Then we can use glib.IdleAdd to handle the destruction of the
-		// window. We need to ensure we have some proper cancellation set up though. It'll need to
-		// use a timer that can be instantly resolved if a new window is about to be created.
-		time.Sleep(500 * time.Millisecond)
-
-		window.Destroy()
-	}()
 
 	return false
 }
