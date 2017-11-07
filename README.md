@@ -20,25 +20,35 @@ drop right into your i3 config file:
 
 ```
 # switch to adjacent workspace
-bindsym $mod+Control+Left exec i3x3 -direction left
-bindsym $mod+Control+Right exec i3x3 -direction right
-bindsym $mod+Control+Up exec i3x3 -direction up
-bindsym $mod+Control+Down exec i3x3 -direction down
+bindsym $mod+Control+Left exec i3x3ctl -direction left
+bindsym $mod+Control+Right exec i3x3ctl -direction right
+bindsym $mod+Control+Up exec i3x3ctl -direction up
+bindsym $mod+Control+Down exec i3x3ctl -direction down
 
 # move focused container to adjacent workspace
-bindsym $mod+Control+Mod1+Left exec i3x3 -direction left -move
-bindsym $mod+Control+Mod1+Right exec i3x3 -direction right -move
-bindsym $mod+Control+Mod1+Up exec i3x3 -direction up -move
-bindsym $mod+Control+Mod1+Down exec i3x3 -direction down -move
-
-# redistribute workspaces for i3x3 (e.g. if a new display is connected)
-bindsym $mod+Control+f exec i3x3-fix
+bindsym $mod+Control+Mod1+Left exec i3x3ctl -direction left -move
+bindsym $mod+Control+Mod1+Right exec i3x3ctl -direction right -move
+bindsym $mod+Control+Mod1+Up exec i3x3ctl -direction up -move
+bindsym $mod+Control+Mod1+Down exec i3x3ctl -direction down -move
 ```
 
 This will allow you to use a 3x3 grid that is separate on each output currently active in i3, using 
 the arrow keys to switch between, or move containers across workspaces. You will also have a hotkey
 for "fixing" the workspace layout, this is useful for if you add or remove displays, because of the
 way that i3x3 requires workspaces to be arranged (see below).
+
+### Daemons
+
+For some other functionality like the overlay, and automatic workspace redistribution, you'll need 
+to launch both `i3x3fixd` and `i3x3overlayd`. You can just throw those in your `.xinitrc`, etc.
+
+```
+# i3x3fixd; for automatically redistributing workspaces
+i3x3fixd > /tmp/i3x3fixd.log 2>&1 &
+
+# i3x3overlayd; for i3x3's overlay
+i3x3overlayd > /tmp/i3x3overlayd.log 2>&1 &
+```  
 
 ### Grid Size
 
