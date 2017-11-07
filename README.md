@@ -4,8 +4,8 @@ Go-based i3 grid workspace manager, using i3-msg.
 
 ## Installation
 
-Install the dependencies for [mattn/go-gtk][1] (i.e. GTK development libraries and tools). Then you
-can simply run the following:
+Install the dependencies for [gotk3/gotk3][1] (i.e. GTK development libraries and tools), and 
+[BurntSushi/xgb][2]. Then you can simply run the following:
 
 ```
 $ go get -u -v github.com/SeerUK/i3x3/...
@@ -130,4 +130,5 @@ workspaces? Things would get very weird, very fast.
 
 MIT
 
-[1]: https://github.com/mattn/go-gtk
+[1]: https://github.com/gotk3/gotk3
+[2]: https://github.com/BurntSushi/xgb
