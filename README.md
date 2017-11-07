@@ -11,7 +11,7 @@ can simply run the following:
 $ go get -u -v github.com/SeerUK/i3x3/...
 ```
 
-This will install 2 binaries, `i3x3` and `i3x3-fix`.
+This will install 3 binaries, `i3x3ctl`, `i3x3fixd`, and `i3x3overlayd`.
 
 ## Configuration
 
