@@ -9,6 +9,17 @@ import (
 	"google.golang.org/grpc"
 )
 
+// @TODO: Maybe this is the wrong name.
+// The daemon package is going to contain all long-running process threads. "Background thread"
+// sounds fine, but what do we call the struct we attach those things to, and can it follow a common
+// interface? e.g.:
+
+// Definitely needs a better name...
+type BackgroundThreader interface {
+	ListenAndServe() error
+	Shutdown()
+}
+
 // Server is the GRPC server used to listen to commands to control i3x3. At it's core, it is what
 // propagates messages throughout the application.
 type Server struct {
@@ -29,19 +40,19 @@ func NewServer(port uint16, messages chan<- proto.DaemonCommand) *Server {
 // NewServerBackgroundThread starts the given server, waiting for the given context to signal for a
 // shutdown event, allowing the server to end gracefully. The returned channel will receive a
 // message when the server has finished shutting down.
-func NewServerBackgroundThread(ctx context.Context, srv *Server) <-chan struct{} {
+func NewServerBackgroundThread(ctx context.Context, bt BackgroundThreader) <-chan struct{} {
 	done := make(chan struct{})
 
 	go func() {
 		<-ctx.Done()
 
 		// If our context says we're done, shut down the server.
-		srv.Shutdown()
+		bt.Shutdown()
 		close(done)
 	}()
 
 	// Start listening.
-	srv.ListenAndServe()
+	bt.ListenAndServe()
 
 	return done
 }
