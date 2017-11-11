@@ -21,7 +21,8 @@ type Server struct {
 // NewServer creates a new i3x3 daemon server.
 func NewServer(port uint16, messages chan<- proto.DaemonCommand) *Server {
 	return &Server{
-		port: port,
+		messages: messages,
+		port:     port,
 	}
 }
 
@@ -48,6 +49,8 @@ func NewServerBackgroundThread(ctx context.Context, srv *Server) <-chan struct{}
 // HandleCommand routes a command through the application so that it may be handled appropriately by
 // other
 func (s *Server) HandleCommand(ctx context.Context, cmd *proto.DaemonCommand) (*proto.DaemonCommandResponse, error) {
+	s.messages <- *cmd
+
 	res := &proto.DaemonCommandResponse{
 		Target: 1,
 	}
