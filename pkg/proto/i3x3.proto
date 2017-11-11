@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package proto;
+
+// DaemonCommand represents a command message for i3x3d to process.
+message DaemonCommand {
+    string direction = 1;
+    bool move = 2;
+    bool overlay = 3;
+}
+
+// DaemonCommandResponse represents the result of a command for i3x3overlayd.
+message DaemonCommandResponse {
+    uint64 target = 1;
+}
+
+// DaemonService is a service for handling overlay commands.
+service DaemonService {
+    rpc HandleCommand(DaemonCommand) returns (DaemonCommandResponse);
+}
