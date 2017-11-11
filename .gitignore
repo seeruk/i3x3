@@ -18,7 +18,7 @@ vendor/
 main
 
 # Compiled commands
-cmd/i3x3/*
-!cmd/i3x3/main.go
-cmd/i3x3fix/*
-!cmd/i3x3fix/main.go
+cmd/i3x3ctl/*
+!cmd/i3x3ctl/main.go
+cmd/i3x3d/*
+!cmd/i3x3d/main.go
