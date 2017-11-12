@@ -10,10 +10,6 @@ import (
 	"github.com/SeerUK/i3x3/pkg/proto"
 )
 
-const (
-	DaemonPort uint16 = 44044
-)
-
 // i3x3d is an optional daemon used to perform non-critical tasks for i3x3. It is daemonised to
 // improve performance, and to gather information about the environment at startup.
 //
@@ -39,8 +35,9 @@ func main() {
 
 	commands := make(chan proto.DaemonCommand)
 
-	server := daemon.NewServer(DaemonPort, commands)
-	serverDone := daemon.NewServerBackgroundThread(ctx, server)
+	rpcService := daemon.NewRPCService(commands)
+	rpcThread := daemon.NewRPCThread(rpcService)
+	rpcThreadDone := daemon.NewBackgroundThread(ctx, rpcThread)
 
 	sig := <-signals
 	log.Printf("caught signal: %v\n", sig)
@@ -48,5 +45,5 @@ func main() {
 	cfn()
 
 	// Wait for our background threads to clean up.
-	<-serverDone
+	<-rpcThreadDone
 }
