@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-
 	"sync"
 
 	"github.com/SeerUK/i3x3/pkg/proto"
