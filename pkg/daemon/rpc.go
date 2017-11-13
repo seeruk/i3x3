@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 
+	"sync"
+
 	"github.com/SeerUK/i3x3/pkg/proto"
 	"google.golang.org/grpc"
 )
@@ -16,6 +18,8 @@ const (
 
 // RPCThread is a thread that when started will start an RPC server.
 type RPCThread struct {
+	sync.Mutex
+
 	port uint16
 
 	service *RPCService
@@ -36,8 +40,9 @@ func (t *RPCThread) Start() error {
 		return fmt.Errorf("error launching listener: %v", err)
 	}
 
-	// Create the gRPC server
+	t.Lock()
 	t.server = grpc.NewServer()
+	t.Unlock()
 
 	// Register our service type with our server.
 	proto.RegisterDaemonServiceServer(t.server, t.service)
@@ -47,8 +52,12 @@ func (t *RPCThread) Start() error {
 
 // Stop gracefully stops this server.
 func (t *RPCThread) Stop() error {
+	t.Lock()
+	defer t.Unlock()
+
 	if t.server != nil {
 		t.server.GracefulStop()
+		t.server = nil
 	}
 
 	return nil
