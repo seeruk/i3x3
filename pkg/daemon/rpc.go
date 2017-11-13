@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"time"
 
 	"github.com/SeerUK/i3x3/pkg/proto"
 	"google.golang.org/grpc"
@@ -48,8 +47,6 @@ func (t *RPCThread) Start() error {
 
 // Stop gracefully stops this server.
 func (t *RPCThread) Stop() error {
-	time.Sleep(10 * time.Second)
-
 	if t.server != nil {
 		t.server.GracefulStop()
 	}
