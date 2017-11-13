@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/SeerUK/i3x3/pkg/daemon"
 	"github.com/SeerUK/i3x3/pkg/proto"
@@ -39,11 +41,30 @@ func main() {
 	rpcThread := daemon.NewRPCThread(rpcService)
 	rpcThreadDone := daemon.NewBackgroundThread(ctx, rpcThread)
 
-	sig := <-signals
-	log.Printf("caught signal: %v\n", sig)
+	select {
+	case sig := <-signals:
+		log.Printf("caught signal: %v. stopping background threads\n", sig)
+	case rpcThreadRes := <-rpcThreadDone:
+		fatal(fmt.Errorf("error starting RPC thread: %v", rpcThreadRes.Error))
+	}
 
 	cfn()
 
+	go func() {
+		time.AfterFunc(5*time.Second, func() {
+			log.Println("took too long stopping, quitting")
+			os.Exit(1)
+		})
+	}()
+
 	// Wait for our background threads to clean up.
 	<-rpcThreadDone
+
+	log.Println("all threads stopped successfully, quitting")
+}
+
+func fatal(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }

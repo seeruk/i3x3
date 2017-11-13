@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/SeerUK/i3x3/pkg/proto"
 	"google.golang.org/grpc"
@@ -11,7 +12,7 @@ import (
 
 const (
 	// RPCPort is the port that the RPC server will listen on.
-	RPCPort uint16 = 44044
+	RPCPort uint16 = 44045
 )
 
 // RPCThread is a thread that when started will start an RPC server.
@@ -47,6 +48,8 @@ func (t *RPCThread) Start() error {
 
 // Stop gracefully stops this server.
 func (t *RPCThread) Stop() error {
+	time.Sleep(10 * time.Second)
+
 	if t.server != nil {
 		t.server.GracefulStop()
 	}
