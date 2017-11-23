@@ -55,6 +55,12 @@ func NewBackgroundThread(ctx context.Context, thread Thread) <-chan BackgroundTh
 		// If we didn't (i.e. if the other thread hasn't told us to bail) then this thread must have
 		// stopped on it's own (maybe an error).
 		err := thread.Start()
+		if err == nil {
+			bail <- struct{}{}
+			done <- BackgroundThreadResult{
+				Error: err,
+			}
+		}
 
 		select {
 		case <-bail:

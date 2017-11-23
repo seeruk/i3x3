@@ -35,7 +35,10 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, os.Kill)
 
-	commands := make(chan proto.DaemonCommand)
+	// @TODO: We may not need a buffer here, but until something is reading this value, we do need
+	// it. Once we include the actual moving / overlay showing stuff it'll need to send more
+	// messages based on the command.
+	commands := make(chan proto.DaemonCommand, 1)
 
 	rpcService := daemon.NewRPCService(commands)
 	rpcThread := daemon.NewRPCThread(rpcService)
