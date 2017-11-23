@@ -80,6 +80,17 @@ func NewRPCService(messages chan<- proto.DaemonCommand) *RPCService {
 func (s *RPCService) HandleCommand(ctx context.Context, cmd *proto.DaemonCommand) (*proto.DaemonCommandResponse, error) {
 	s.messages <- *cmd
 
+	// @TODO: Rethink this. It should be for errors that need to be sent to the client. We should
+	// probably make another channel that we receive from that holds the reply. But how on earth
+	// would we know which value coming through that channel was related to this call of this
+	// service? We couldn't link the two, and it'd be waiting for _any_ value to come through...
+	// Maybe the client just needs to acknowledge the fact that it received the message, and then
+	// any errors are just logged in the other daemon threads?
+	//
+	// To achieve the above, you could make a new type that contains the command, and a channel to
+	// respond with the result in (would it need to be a pointer to that channel?) then when we're
+	// done it'd send the result back. The client might not want to wait for that though. It should
+	// be as fast as possible. Fire and forget.
 	res := &proto.DaemonCommandResponse{
 		// @TODO:
 		Target: 1,
