@@ -60,6 +60,7 @@ func NewBackgroundThread(ctx context.Context, thread Thread) <-chan BackgroundTh
 			done <- BackgroundThreadResult{
 				Error: err,
 			}
+			return
 		}
 
 		select {
