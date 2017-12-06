@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"time"
 
 	"github.com/SeerUK/i3x3/pkg/daemon"
 	"github.com/SeerUK/i3x3/pkg/rpc"
-	"github.com/SeerUK/i3x3/pkg/rpc/rpctypes"
+	"github.com/SeerUK/i3x3/pkg/workspace"
+	"github.com/inconshreveable/log15"
 )
+
+var logger = log15.New("module", "main/main")
 
 // i3x3d is the daemon used actually execute the functionality provided by i3x3. It is a daemon
 // mainly to ensure better performance vs. running commands on-demand. This way, the client can be
@@ -40,42 +42,53 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, os.Kill)
 
-	commands := make(chan rpctypes.Message, 1)
+	commands := make(chan rpc.Message, 1)
+	switchResults := make(chan workspace.SwitchResult, 1)
+
+	logger.Info("starting background threads")
 
 	rpcService := rpc.NewService(commands)
 	rpcThread := daemon.NewRPCThread(rpcService)
 	rpcThreadDone := daemon.NewBackgroundThread(ctx, rpcThread)
 
-	overlayThread := daemon.NewOverlayThread(commands)
-	overlayThreadDone := daemon.NewBackgroundThread(ctx, overlayThread)
+	workspaceSwitcher := workspace.NewSwitcher(commands, switchResults)
+	workspaceSwitcherThread := daemon.NewWorkspaceSwitcherThread(workspaceSwitcher)
+	workspaceSwitcherDone := daemon.NewBackgroundThread(ctx, workspaceSwitcherThread)
+
+	//overlayThread := daemon.NewOverlayThread(...)
+	//overlayThreadDone := daemon.NewBackgroundThread(ctx, overlayThread)
 
 	select {
 	case sig := <-signals:
-		log.Printf("caught signal: %v. stopping background threads\n", sig)
-	case rpcThreadRes := <-rpcThreadDone:
-		fatal(fmt.Errorf("error starting RPC thread: %v", rpcThreadRes.Error))
-	case overlayThreadRes := <-overlayThreadDone:
-		fatal(fmt.Errorf("error starting overlay thread: %v", overlayThreadRes.Error))
+		fmt.Println() // Skip the ^C
+		logger.Info("stopping background threads", "signal", sig)
+	case res := <-rpcThreadDone:
+		fatal(fmt.Errorf("error starting RPC thread: %v", res.Error))
+		//case res := <-overlayThreadDone:
+		//	fatal(fmt.Errorf("error starting overlay thread: %v", res.Error))
+	case res := <-workspaceSwitcherDone:
+		fatal(fmt.Errorf("error starting workspace switcher thread: %v", res.Error))
 	}
 
 	cfn()
 
 	go func() {
 		time.AfterFunc(5*time.Second, func() {
-			log.Println("took too long stopping, quitting")
+			logger.Error("took too long stopping, quitting")
 			os.Exit(1)
 		})
 	}()
 
 	// Wait for our background threads to clean up.
 	<-rpcThreadDone
-	<-overlayThreadDone
+	//<-overlayThreadDone
+	<-workspaceSwitcherDone
 
-	log.Println("all threads stopped successfully, quitting")
+	logger.Info("threads stopped, exiting")
 }
 
 func fatal(err error) {
 	if err != nil {
-		log.Fatal(err)
+		logger.Crit("a fatal error occurred", "error", err)
 	}
 }
