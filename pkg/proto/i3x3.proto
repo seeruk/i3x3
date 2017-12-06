@@ -11,7 +11,7 @@ message DaemonCommand {
 
 // DaemonCommandResponse represents the result of a command for i3x3overlayd.
 message DaemonCommandResponse {
-    uint64 target = 1;
+    string message = 1;
 }
 
 // DaemonService is a service for handling overlay commands.
