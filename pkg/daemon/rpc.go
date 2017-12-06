@@ -7,6 +7,7 @@ import (
 
 	"github.com/SeerUK/i3x3/pkg/proto"
 	"github.com/SeerUK/i3x3/pkg/rpc"
+	"github.com/inconshreveable/log15"
 	"google.golang.org/grpc"
 )
 
@@ -14,22 +15,30 @@ import (
 type RPCThread struct {
 	sync.Mutex
 
+	logger  log15.Logger
 	service *rpc.Service
 	server  *grpc.Server
 }
 
 // NewRPCThread creates a new RPC thread.
 func NewRPCThread(service *rpc.Service) *RPCThread {
+	logger := log15.New("module", "daemon/rpc")
+
 	return &RPCThread{
+		logger:  logger,
 		service: service,
 	}
 }
 
 // Start attempts to start listening on the configured port.
 func (t *RPCThread) Start() error {
+	defer func() {
+		t.logger.Info("thread stopped")
+	}()
+
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%v", rpc.DefaultPort))
 	if err != nil {
-		return fmt.Errorf("error launching listener: %v", err)
+		return fmt.Errorf("daemon/rpc: error launching listener: %v", err)
 	}
 
 	t.Lock()
@@ -38,6 +47,8 @@ func (t *RPCThread) Start() error {
 
 	// Register our service type with our server.
 	proto.RegisterDaemonServiceServer(t.server, t.service)
+
+	t.logger.Info("thread started")
 
 	return t.server.Serve(listener)
 }

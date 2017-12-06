@@ -2,10 +2,10 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/BurntSushi/xgb"
-  packages = [".","randr","render","xproto"]
-  revision = "27f122750802c950b2c869a5b63dafcf590ced95"
+  name = "github.com/go-stack/stack"
+  packages = ["."]
+  revision = "259ab82a6cad3992b4e21ff5cac294ccb06474bc"
+  version = "v1.7.0"
 
 [[projects]]
   branch = "master"
@@ -20,10 +20,34 @@
   revision = "75d251f0638d84c1b29df29eccad3b7d2be8e445"
 
 [[projects]]
+  name = "github.com/inconshreveable/log15"
+  packages = ["."]
+  revision = "0decfc6c20d9ca0ad143b0e89dcaa20f810b4fb3"
+  version = "v2.13"
+
+[[projects]]
+  name = "github.com/mattn/go-colorable"
+  packages = ["."]
+  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
+  version = "v0.0.9"
+
+[[projects]]
+  name = "github.com/mattn/go-isatty"
+  packages = ["."]
+  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
+  version = "v0.0.3"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
   revision = "c73622c77280266305273cb545f54516ced95b93"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "9167dbfd0f8e88b731dd88cbf73a270701a37bb4"
 
 [[projects]]
   branch = "master"
@@ -46,6 +70,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5909227f712069ddf6bcc1e1e3be1556ef86bbac942fec19ce47663945cc659a"
+  inputs-digest = "acdcbf519f5a50b9a7b757b3f9543e1dbf27f8736978ba2a50ba92599cec71f1"
   solver-name = "gps-cdcl"
   solver-version = 1
