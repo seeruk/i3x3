@@ -1,14 +1,12 @@
 package daemon
 
-import (
-	"github.com/SeerUK/i3x3/pkg/rpc/rpctypes"
-)
+import "github.com/SeerUK/i3x3/pkg/rpc"
 
 type OverlayThread struct {
-	commands <-chan rpctypes.Message
+	commands <-chan rpc.Message
 }
 
-func NewOverlayThread(commands <-chan rpctypes.Message) *OverlayThread {
+func NewOverlayThread(commands <-chan rpc.Message) *OverlayThread {
 	return &OverlayThread{
 		commands: commands,
 	}

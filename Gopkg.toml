@@ -17,3 +17,7 @@
 [[constraint]]
   name = "google.golang.org/grpc"
   version = "1.7.1"
+
+[[constraint]]
+  name = "github.com/inconshreveable/log15"
+  version = "2.13.0"
