@@ -4,11 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"time"
 
+	"github.com/SeerUK/i3x3/pkg/daemon"
 	"github.com/SeerUK/i3x3/pkg/proto"
-	"github.com/SeerUK/i3x3/pkg/rpc"
 	"google.golang.org/grpc"
 )
 
@@ -22,12 +21,10 @@ func main() {
 	flag.BoolVar(&disableOverlay, "no-overlay", false, "Used to disable the GTK-based overlay")
 	flag.Parse()
 
-	ctx, cfn := context.WithTimeout(context.Background(), rpc.DefaultTimeout+time.Second)
+	ctx, cfn := context.WithTimeout(context.Background(), time.Second)
 	defer cfn()
 
-	// @TODO: Use a secure connection? Is it important?
-	// @TODO: Investigate connection via unix socket.
-	conn, err := grpc.DialContext(ctx, fmt.Sprintf("127.0.0.1:%v", rpc.DefaultPort), grpc.WithInsecure())
+	conn, err := grpc.DialContext(ctx, fmt.Sprintf("127.0.0.1:%v", daemon.RPCPort), grpc.WithInsecure())
 	fatal(err)
 
 	defer conn.Close()
@@ -42,9 +39,7 @@ func main() {
 
 	fatal(err)
 
-	if resp.Message != "" {
-		log.Printf("i3x3ctl: response from server: %s\n", resp.Message)
-	}
+	fmt.Println(resp.Target)
 }
 
 // fatal panics if the given error is not nil.
