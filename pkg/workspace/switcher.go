@@ -42,6 +42,8 @@ func NewSwitcher(msgCh <-chan rpc.Message, outCh chan<- SwitchResult) *Switcher 
 	}
 }
 
+// Loop starts a loop that will loop until canceled. It waits for messages to come in, handles them,
+// and sends a response back to the message sender.
 func (s *Switcher) Loop() error {
 	s.ctx, s.cfn = context.WithCancel(context.Background())
 
@@ -67,10 +69,9 @@ func (s *Switcher) Loop() error {
 			return s.ctx.Err()
 		}
 	}
-
-	return nil
 }
 
+// GracefulStop attempts to stop the switcher's loop.
 func (s *Switcher) GracefulStop() {
 	s.Lock()
 	defer s.Unlock()

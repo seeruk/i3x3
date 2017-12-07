@@ -48,7 +48,9 @@ func (t *RPCThread) Start() error {
 	// Register our service type with our server.
 	proto.RegisterDaemonServiceServer(t.server, t.service)
 
-	t.logger.Info("thread started")
+	t.logger.Info("thread started, listening",
+		"port", rpc.DefaultPort,
+	)
 
 	return t.server.Serve(listener)
 }
