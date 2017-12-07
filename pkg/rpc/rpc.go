@@ -51,8 +51,8 @@ type Service struct {
 }
 
 // NewService creates a new i3x3 RPC server.
-func NewService(msgCh chan<- Message) *Service {
-	logger := log15.New("module", "rpc/rpc")
+func NewService(logger log15.Logger, msgCh chan<- Message) *Service {
+	logger = logger.New("module", "rpc/rpc")
 
 	return &Service{
 		logger: logger,

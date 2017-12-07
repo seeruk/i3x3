@@ -16,8 +16,8 @@ type WorkspaceSwitcherThread struct {
 }
 
 // NewWorkspaceSwitcherThread creates a new workspace switcher thread.
-func NewWorkspaceSwitcherThread(switcher *workspace.Switcher) *WorkspaceSwitcherThread {
-	logger := log15.New("module", "daemon/workspaceSwitcher")
+func NewWorkspaceSwitcherThread(logger log15.Logger, switcher *workspace.Switcher) *WorkspaceSwitcherThread {
+	logger = logger.New("module", "daemon/workspaceSwitcher")
 
 	return &WorkspaceSwitcherThread{
 		logger:   logger,

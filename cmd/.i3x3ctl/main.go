@@ -1,17 +1,12 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"fmt"
 	"os"
 	"strconv"
 
 	"github.com/SeerUK/i3x3/pkg/grid"
 	"github.com/SeerUK/i3x3/pkg/i3"
-	"github.com/SeerUK/i3x3/pkg/overlayd"
-	"github.com/SeerUK/i3x3/pkg/proto"
-	"google.golang.org/grpc"
 )
 
 // i3x3 is a workspace grid management utility for i3. It allows you to navigate workspaces by
@@ -75,27 +70,6 @@ func main() {
 	// Retrieve the target workspace that we should be moving to.
 	target := targetFunc()
 
-	if !noOverlay {
-		ctx := context.Background()
-
-		conn, err := grpc.Dial(fmt.Sprintf(":%v", overlayd.Port), grpc.WithInsecure())
-		fatal(err)
-
-		defer conn.Close()
-
-		overlaydClient := proto.NewOverlaydServerClient(conn)
-		overlaydClient.SendCommand(ctx, &proto.OverlaydCommand{
-			Target: uint32(target),
-		})
-	}
-
-	//var overlayDone <-chan time.Time
-
-	//if !noOverlay {
-	//	// Create the UI overlay, based on the current grid, and target.
-	//	overlayDone = overlay.Spawn(gridEnv, gridSize, target)
-	//}
-
 	if move {
 		// If we need to move the currently focused container, we must do it before switching space,
 		// because i3 will move whatever is focused when move is ran. In other words, this cannot be
@@ -107,11 +81,6 @@ func main() {
 	// Switch to the target workspace.
 	err = i3.SwitchToWorkspace(target)
 	fatal(err)
-
-	// Wait until the overlay timer ends before exiting.
-	//if !noOverlay {
-	//	<-overlayDone
-	//}
 }
 
 // fatal panics if the given error is not nil.
