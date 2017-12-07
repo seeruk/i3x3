@@ -43,8 +43,8 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, os.Kill)
 
-	commands := make(chan rpc.Message, 1)
-	switchResults := make(chan workspace.SwitchMessage, 1)
+	commands := make(chan rpc.Message)
+	switchResults := make(chan workspace.SwitchMessage)
 
 	logger := baseLogger.New("module", "main/main")
 	logger.Info("starting background threads")
