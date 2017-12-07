@@ -34,7 +34,7 @@ type Message struct {
 
 // NewMessage creates a new RPC message, and returns a channel that a response should be passed to.
 func NewMessage(command *proto.DaemonCommand) (Message, chan error) {
-	responseCh := make(chan error)
+	responseCh := make(chan error, 1)
 	message := Message{
 		ResponseCh: responseCh,
 		Command:    *command,
@@ -75,20 +75,16 @@ func (s *Service) HandleCommand(ctx context.Context, cmd *proto.DaemonCommand) (
 
 	var err error
 
-	go func() {
-		// Don't block while trying to send the message. Try as long as we can, otherwise we just
-		// time out, stopping this goroutine from leaking.
-		select {
-		case s.msgCh <- msg:
-			s.logger.Debug("sent message",
-				"direction", cmd.Direction,
-				"move", cmd.Move,
-				"overlay", cmd.Overlay,
-			)
-		case <-ctx.Done():
-		case <-timeoutCh:
-		}
-	}()
+	select {
+	case s.msgCh <- msg:
+		s.logger.Debug("sent message",
+			"direction", cmd.Direction,
+			"move", cmd.Move,
+			"overlay", cmd.Overlay,
+		)
+	case <-ctx.Done():
+	case <-timeoutCh:
+	}
 
 	select {
 	case err = <-responseCh:

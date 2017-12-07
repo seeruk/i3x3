@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/SeerUK/i3x3/pkg/grid"
 	"github.com/SeerUK/i3x3/pkg/i3"
@@ -14,6 +15,9 @@ import (
 	"github.com/inconshreveable/log15"
 )
 
+// SwitchTimeout is the amount of time the switcher will wait for outbound message acknowledgement.
+const SwitchTimeout = time.Second
+
 // SwitchResult is the result of an attempt to switch workspaces.
 type SwitchMessage struct {
 	// ResponseCh is a channel to send a response down. The response may simply be nil, indicating
@@ -21,6 +25,17 @@ type SwitchMessage struct {
 	ResponseCh chan<- error
 	// Target is the workspace we're going to switch to, if we're going to switch workspaces.
 	Target float64
+}
+
+// NewSwitchMessage creates a new switch message, used to notify some consumer.
+func NewSwitchMessage(target float64) (SwitchMessage, chan error) {
+	responseCh := make(chan error, 1)
+	message := SwitchMessage{
+		ResponseCh: responseCh,
+		Target:     target,
+	}
+
+	return message, responseCh
 }
 
 // Switcher is the long-running workspace switcher. It will process one message at a time.
@@ -59,16 +74,20 @@ func (s *Switcher) Loop() error {
 	for {
 		select {
 		case msg := <-s.msgCh:
-			cmd := msg.Command
+			// Similar to how an HTTP server might work, we accept new messages, and process them in
+			// a goroutine. This allows messages to avoid blocking each other.
+			go func() {
+				cmd := msg.Command
 
-			s.logger.Debug("received message",
-				"direction", cmd.Direction,
-				"move", cmd.Move,
-				"overlay", cmd.Overlay,
-			)
+				s.logger.Debug("received message",
+					"direction", cmd.Direction,
+					"move", cmd.Move,
+					"overlay", cmd.Overlay,
+				)
 
-			// @TODO: Actually switch workspaces here.
-			msg.ResponseCh <- s.handleCommand(cmd)
+				// @TODO: Actually switch workspaces here.
+				msg.ResponseCh <- s.handleCommand(cmd)
+			}()
 		case <-s.ctx.Done():
 			return s.ctx.Err()
 		}
@@ -87,27 +106,66 @@ func (s *Switcher) GracefulStop() {
 
 // handleCommand takes a daemon command, and actions it.
 func (s *Switcher) handleCommand(cmd proto.DaemonCommand) error {
-	dir := grid.Direction(cmd.Direction)
+	target, err := s.switchWorkspace(cmd.Direction, cmd.Move, cmd.Overlay)
+
+	msg, responseCh := NewSwitchMessage(target)
+	timeoutCh := make(chan struct{})
+
+	timer := time.AfterFunc(SwitchTimeout, func() {
+		// "Broadcast" the timeout signal.
+		close(timeoutCh)
+	})
+
+	defer timer.Stop()
+
+	if err == nil && cmd.Overlay {
+		select {
+		case s.outCh <- msg:
+			s.logger.Debug("sent message",
+				"target", fmt.Sprintf("%f", target),
+			)
+		case <-s.ctx.Done():
+		case <-timeoutCh:
+		}
+
+		select {
+		case resErr := <-responseCh:
+			if resErr != nil {
+				err = resErr
+			}
+		case <-timeoutCh:
+			err = fmt.Errorf("workspace/switcher: timed out waiting for internal response")
+		case <-s.ctx.Done():
+			err = fmt.Errorf("workspace/switcher: %v", s.ctx.Err())
+		}
+	}
+
+	return err
+}
+
+// switchWorkspace actually performs the workspace switching, communicating with i3.
+func (s *Switcher) switchWorkspace(direction string, move, overlay bool) (float64, error) {
+	dir := grid.Direction(direction)
 
 	// Env-based config
 	ix, err := envAsInt("I3X3_X_SIZE", 3)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	iy, err := envAsInt("I3X3_Y_SIZE", 3)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	outputs, err := i3.FindOutputs()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	workspaces, err := i3.FindWorkspaces()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// Initialise the state of the grid.
@@ -119,49 +177,40 @@ func (s *Switcher) handleCommand(cmd proto.DaemonCommand) error {
 
 	targetFunc, ok := targetFuncs[dir]
 	if !ok {
-		return fmt.Errorf("invalid direction: %q", cmd.Direction)
+		return 0, fmt.Errorf("invalid direction: %q", direction)
 	}
 
 	edgeFunc, ok := edgeFuncs[dir]
 	if !ok {
-		return fmt.Errorf("invalid direction: %q", cmd.Direction)
+		return 0, fmt.Errorf("invalid direction: %q", direction)
 	}
 
 	// Check if we're at an edge...
 	if edgeFunc(gridEnv.CurrentWorkspace) {
 		// ... and if we are, just return.
-		return nil
+		return 0, nil
 	}
 
 	// Retrieve the target workspace that we should be moving to.
 	target := targetFunc()
 
-	responseCh := make(chan error, 1)
-
-	go func() {
-		result := SwitchMessage{
-			ResponseCh: responseCh,
-			Target:     target,
-		}
-
-		select {
-		case s.outCh <- result:
-		default:
-		}
-	}()
-
-	if cmd.Move {
+	if move {
 		// If we need to move the currently focused container, we must do it before switching space,
 		// because i3 will move whatever is focused when move is ran. In other words, this cannot be
 		// handled concurrently.
 		err = i3.MoveToWorkspace(target)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	}
 
 	// Switch to the target workspace.
-	return i3.SwitchToWorkspace(target)
+	err = i3.SwitchToWorkspace(target)
+	if err != nil {
+		return 0, err
+	}
+
+	return target, nil
 }
 
 // envAsInt attempts to lookup the value of an environment variable by the given key. If it is not
