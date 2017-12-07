@@ -21,8 +21,8 @@ type RPCThread struct {
 }
 
 // NewRPCThread creates a new RPC thread.
-func NewRPCThread(service *rpc.Service) *RPCThread {
-	logger := log15.New("module", "daemon/rpc")
+func NewRPCThread(logger log15.Logger, service *rpc.Service) *RPCThread {
+	logger = logger.New("module", "daemon/rpc")
 
 	return &RPCThread{
 		logger:  logger,
