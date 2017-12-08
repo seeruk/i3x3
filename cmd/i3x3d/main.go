@@ -31,7 +31,6 @@ import (
 //   i3x3d will detect this change, and automatically redistribute i3's workspaces in a way that
 //   will ensure that i3x3 still behaves as expected. It does however mean that your containers may
 //   end up on another output when you add a new output.
-//   @TODO: ^ This should also happen periodically (every 30 seconds or so?)
 // * GTK-based overlay:
 //   After initially building this into the i3x3ctl command, performance became an issue. Having the
 //   overlay in i3x3d means GTK can start up and be initialised, leaving as little work as possible
