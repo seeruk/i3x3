@@ -27,17 +27,21 @@ var (
 type Message struct {
 	// Command is a command that comes from an RPC client.
 	Command proto.DaemonCommand
+	// Context is a context used to cancel downstream events. It should be set with a timeout.
+	Context context.Context
 	// ResponseCh is a channel to send a response down. The response may simply be nil, indicating
 	// success. An error sent down this channel will likely be sent to the client (i3x3ctl).
 	ResponseCh chan<- error
 }
 
 // NewMessage creates a new RPC message, and returns a channel that a response should be passed to.
-func NewMessage(command *proto.DaemonCommand) (Message, chan error) {
+func NewMessage(ctx context.Context, command *proto.DaemonCommand) (Message, chan error) {
 	responseCh := make(chan error, 1)
+
 	message := Message{
-		ResponseCh: responseCh,
 		Command:    *command,
+		Context:    ctx,
+		ResponseCh: responseCh,
 	}
 
 	return message, responseCh
@@ -63,17 +67,12 @@ func NewService(logger log15.Logger, msgCh chan<- Message) *Service {
 // HandleCommand routes a command through the application so that it may be handled appropriately by
 // other
 func (s *Service) HandleCommand(ctx context.Context, cmd *proto.DaemonCommand) (*proto.DaemonCommandResponse, error) {
-	msg, responseCh := NewMessage(cmd)
-	timeoutCh := make(chan struct{})
-
-	timer := time.AfterFunc(DefaultTimeout, func() {
-		// "Broadcast" the timeout signal.
-		close(timeoutCh)
-	})
-
-	defer timer.Stop()
+	// For every new command that comes in, we make a new context. Sort of like a HTTP server.
+	msgCtx, _ := context.WithTimeout(context.Background(), DefaultTimeout)
+	msg, responseCh := NewMessage(msgCtx, cmd)
 
 	var err error
+	var res proto.DaemonCommandResponse
 
 	select {
 	case s.msgCh <- msg:
@@ -83,25 +82,33 @@ func (s *Service) HandleCommand(ctx context.Context, cmd *proto.DaemonCommand) (
 			"overlay", cmd.Overlay,
 		)
 	case <-ctx.Done():
-	case <-timeoutCh:
+		err = ctx.Err()
+	case <-msgCtx.Done():
+		err = ErrTimeout
+	}
+
+	if err != nil {
+		res.Message = err.Error()
+		return &res, err
 	}
 
 	select {
 	case err = <-responseCh:
 	case <-ctx.Done():
 		err = ctx.Err()
-	case <-timeoutCh:
+	case <-msgCtx.Done():
 		err = ErrTimeout
 	}
 
-	var message string
 	if err != nil {
-		message = err.Error()
+		res.Message = err.Error()
 	}
 
-	res := &proto.DaemonCommandResponse{
-		Message: message,
-	}
+	defer func() {
+		s.logger.Debug("sent response",
+			"response", res,
+		)
+	}()
 
-	return res, nil
+	return &res, err
 }
