@@ -25,25 +25,28 @@ type SwitchMessage struct {
 	// ResponseCh is a channel to send a response down. The response may simply be nil, indicating
 	// success. If an error is sent, it may bubble up and be sent to the client.
 	ResponseCh chan<- error
+	// Environment is a grid environment (containing things about the current state of the grid).
+	Environment grid.Environment
 	// Target is the workspace we're going to switch to, if we're going to switch workspaces.
 	Target float64
 }
 
 // NewSwitchMessage creates a new switch message, used to notify some consumer.
-func NewSwitchMessage(ctx context.Context, target float64) (SwitchMessage, chan error) {
+func NewSwitchMessage(ctx context.Context, env grid.Environment, target float64) (SwitchMessage, chan error) {
 	responseCh := make(chan error, 1)
 
 	message := SwitchMessage{
-		Context:    ctx,
-		ResponseCh: responseCh,
-		Target:     target,
+		Context:     ctx,
+		ResponseCh:  responseCh,
+		Environment: env,
+		Target:      target,
 	}
 
 	return message, responseCh
 }
 
-// Switcher is the long-running workspace switcher. It will process one message at a time.
-type Switcher struct {
+// SwitchThread is the long-running workspace switcher. It will process one message at a time.
+type SwitchThread struct {
 	sync.Mutex
 
 	ctx    context.Context
@@ -54,30 +57,40 @@ type Switcher struct {
 	outCh chan<- SwitchMessage
 }
 
-// NewSwitcher creates a new workspace switcher.
-func NewSwitcher(logger log15.Logger, msgCh <-chan rpc.Message, outCh chan<- SwitchMessage) *Switcher {
-	logger = logger.New("module", "workspace/switcher")
+// NewSwitchThread creates a new workspace switcher thread.
+func NewSwitchThread(logger log15.Logger, msgCh <-chan rpc.Message, outCh chan<- SwitchMessage) *SwitchThread {
+	logger = logger.New("module", "workspace/switcherThread")
 
-	return &Switcher{
+	return &SwitchThread{
 		logger: logger,
 		msgCh:  msgCh,
 		outCh:  outCh,
 	}
 }
 
-// Loop starts a loop that will loop until canceled. It waits for messages to come in, handles them,
-// and sends a response back to the message sender.
-func (s *Switcher) Loop() error {
-	s.ctx, s.cfn = context.WithCancel(context.Background())
+// Start a loop that will loop until canceled. It waits for messages to come in, handles them, and
+// sends a response back to the message sender.
+func (t *SwitchThread) Start() error {
+	defer func() {
+		t.logger.Info("thread stopped")
+	}()
+
+	t.Lock()
+	t.ctx, t.cfn = context.WithCancel(context.Background())
+	t.Unlock()
 
 	defer func() {
-		s.ctx = nil
-		s.cfn = nil
+		t.Lock()
+		t.ctx = nil
+		t.cfn = nil
+		t.Unlock()
 	}()
+
+	t.logger.Info("thread started")
 
 	for {
 		select {
-		case msg := <-s.msgCh:
+		case msg := <-t.msgCh:
 			// Similar to how an HTTP server might work, we accept new messages, and process them in
 			// a goroutine. This allows messages to avoid blocking each other.
 			go func() {
@@ -85,45 +98,48 @@ func (s *Switcher) Loop() error {
 				cmd := msg.Command
 
 				// @TODO: Actually switch workspaces here.
-				msg.ResponseCh <- s.handleCommand(ctx, cmd)
+				msg.ResponseCh <- t.handleCommand(ctx, cmd)
 
-				s.logger.Debug("sent response",
+				t.logger.Debug("sent response",
 					"direction", cmd.Direction,
 					"move", cmd.Move,
 					"overlay", cmd.Overlay,
 				)
 			}()
-		case <-s.ctx.Done():
-			return s.ctx.Err()
+		case <-t.ctx.Done():
+			return t.ctx.Err()
 		}
 	}
 }
 
-// GracefulStop attempts to stop the switcher's loop.
-func (s *Switcher) GracefulStop() {
-	s.Lock()
-	defer s.Unlock()
+// Stop attempts to gracefully stop the switcher's loop.
+func (t *SwitchThread) Stop() error {
+	t.Lock()
+	defer t.Unlock()
 
-	if s.ctx != nil && s.cfn != nil {
-		s.cfn()
+	if t.ctx != nil && t.cfn != nil {
+		t.cfn()
 	}
+
+	return nil
 }
 
 // handleCommand takes a daemon command, and actions it.
-func (s *Switcher) handleCommand(ctx context.Context, cmd proto.DaemonCommand) error {
-	target, err := s.switchWorkspace(cmd.Direction, cmd.Move, cmd.Overlay)
+func (t *SwitchThread) handleCommand(ctx context.Context, cmd proto.DaemonCommand) error {
+	// Perform the switch, returning information to react on in other threads.
+	env, tar, err := t.switchWorkspace(cmd.Direction, cmd.Move, cmd.Overlay)
 
 	ctx, _ = context.WithTimeout(ctx, SwitchTimeout)
-	msg, responseCh := NewSwitchMessage(ctx, target)
+	msg, responseCh := NewSwitchMessage(ctx, env, tar)
 
 	if err == nil && cmd.Overlay {
 		select {
-		case s.outCh <- msg:
-			s.logger.Debug("sent message",
-				"target", fmt.Sprintf("%.0f", target),
+		case t.outCh <- msg:
+			t.logger.Debug("sent message",
+				"target", fmt.Sprintf("%.0f", tar),
 			)
-		case <-s.ctx.Done():
-			return fmt.Errorf("workspace/switcher: sending: %v", s.ctx.Err())
+		case <-t.ctx.Done():
+			return fmt.Errorf("workspace/switcher: sending: %v", t.ctx.Err())
 		case <-ctx.Done():
 			return fmt.Errorf("workspace/switcher: sending: timed out")
 		}
@@ -133,8 +149,8 @@ func (s *Switcher) handleCommand(ctx context.Context, cmd proto.DaemonCommand) e
 			if err != nil {
 				return err
 			}
-		case <-s.ctx.Done():
-			return fmt.Errorf("workspace/switcher: receiving: %v", s.ctx.Err())
+		case <-t.ctx.Done():
+			return fmt.Errorf("workspace/switcher: receiving: %v", t.ctx.Err())
 		case <-ctx.Done():
 			return fmt.Errorf("workspace/switcher: receiving: timed out")
 		}
@@ -144,28 +160,29 @@ func (s *Switcher) handleCommand(ctx context.Context, cmd proto.DaemonCommand) e
 }
 
 // switchWorkspace actually performs the workspace switching, communicating with i3.
-func (s *Switcher) switchWorkspace(direction string, move, overlay bool) (float64, error) {
+func (t *SwitchThread) switchWorkspace(direction string, move, overlay bool) (grid.Environment, float64, error) {
 	dir := grid.Direction(direction)
+	env := grid.Environment{}
 
 	// Env-based config
 	ix, err := envAsInt("I3X3_X_SIZE", 3)
 	if err != nil {
-		return 0, err
+		return env, 0, err
 	}
 
 	iy, err := envAsInt("I3X3_Y_SIZE", 3)
 	if err != nil {
-		return 0, err
+		return env, 0, err
 	}
 
 	outputs, err := i3.FindOutputs()
 	if err != nil {
-		return 0, err
+		return env, 0, err
 	}
 
 	workspaces, err := i3.FindWorkspaces()
 	if err != nil {
-		return 0, err
+		return env, 0, err
 	}
 
 	// Initialise the state of the grid.
@@ -177,18 +194,18 @@ func (s *Switcher) switchWorkspace(direction string, move, overlay bool) (float6
 
 	targetFunc, ok := targetFuncs[dir]
 	if !ok {
-		return 0, fmt.Errorf("invalid direction: %q", direction)
+		return gridEnv, 0, fmt.Errorf("invalid direction: %q", direction)
 	}
 
 	edgeFunc, ok := edgeFuncs[dir]
 	if !ok {
-		return 0, fmt.Errorf("invalid direction: %q", direction)
+		return gridEnv, 0, fmt.Errorf("invalid direction: %q", direction)
 	}
 
 	// Check if we're at an edge...
 	if edgeFunc(gridEnv.CurrentWorkspace) {
 		// ... and if we are, just return.
-		return 0, nil
+		return gridEnv, 0, fmt.Errorf("hit edge of grid")
 	}
 
 	// Retrieve the target workspace that we should be moving to.
@@ -200,17 +217,17 @@ func (s *Switcher) switchWorkspace(direction string, move, overlay bool) (float6
 		// handled concurrently.
 		err = i3.MoveToWorkspace(target)
 		if err != nil {
-			return 0, err
+			return gridEnv, 0, err
 		}
 	}
 
 	// Switch to the target workspace.
 	err = i3.SwitchToWorkspace(target)
 	if err != nil {
-		return 0, err
+		return gridEnv, 0, err
 	}
 
-	return target, nil
+	return gridEnv, target, nil
 }
 
 // envAsInt attempts to lookup the value of an environment variable by the given key. If it is not
