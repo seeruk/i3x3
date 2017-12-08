@@ -39,10 +39,6 @@ func NewOverlayThread(logger log15.Logger, msgCh <-chan SwitchMessage) *OverlayT
 
 // Start attempts to start the overlay thread.
 func (t *OverlayThread) Start() error {
-	defer func() {
-		t.logger.Info("thread stopped")
-	}()
-
 	t.Lock()
 	t.ctx, t.cfn = context.WithCancel(context.Background())
 	t.Unlock()
@@ -75,6 +71,8 @@ func (t *OverlayThread) Start() error {
 
 	// This is a blocking call.
 	gtk.Main()
+
+	t.logger.Info("thread stopped")
 
 	return nil
 }
