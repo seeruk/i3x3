@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SeerUK/i3x3/pkg/daemon"
-	"github.com/SeerUK/i3x3/pkg/proto"
+	"github.com/SeerUK/i3x3/internal/daemon"
+	"github.com/SeerUK/i3x3/internal/proto"
 	"google.golang.org/grpc"
 )
 

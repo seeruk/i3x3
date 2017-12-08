@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SeerUK/i3x3/pkg/grid"
-	"github.com/SeerUK/i3x3/pkg/i3"
-	"github.com/SeerUK/i3x3/pkg/proto"
-	"github.com/SeerUK/i3x3/pkg/rpc"
+	"github.com/SeerUK/i3x3/internal/grid"
+	"github.com/SeerUK/i3x3/internal/i3"
+	"github.com/SeerUK/i3x3/internal/proto"
+	"github.com/SeerUK/i3x3/internal/rpc"
 	"github.com/inconshreveable/log15"
 )
 
