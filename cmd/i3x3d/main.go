@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/SeerUK/i3x3/pkg/daemon"
-	"github.com/SeerUK/i3x3/pkg/rpc"
-	"github.com/SeerUK/i3x3/pkg/workspace"
+	"github.com/SeerUK/i3x3/internal/daemon"
+	"github.com/SeerUK/i3x3/internal/rpc"
+	"github.com/SeerUK/i3x3/internal/workspace"
 	"github.com/inconshreveable/log15"
 )
 

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SeerUK/i3x3/pkg/grid"
+	"github.com/SeerUK/i3x3/internal/grid"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"

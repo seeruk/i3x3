@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/SeerUK/i3x3/pkg/proto"
+	"github.com/SeerUK/i3x3/internal/proto"
 	"github.com/inconshreveable/log15"
 )
 

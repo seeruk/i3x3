@@ -10,7 +10,7 @@ import (
 	"github.com/BurntSushi/xgb"
 	"github.com/BurntSushi/xgb/randr"
 	"github.com/BurntSushi/xgb/xproto"
-	"github.com/SeerUK/i3x3/pkg/i3"
+	"github.com/SeerUK/i3x3/internal/i3"
 )
 
 // i3x3fixd is used to redistribute i3's workspaces in a way that will allow i3x3 to function
