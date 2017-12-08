@@ -71,10 +71,6 @@ func NewSwitchThread(logger log15.Logger, msgCh <-chan rpc.Message, outCh chan<-
 // Start a loop that will loop until canceled. It waits for messages to come in, handles them, and
 // sends a response back to the message sender.
 func (t *SwitchThread) Start() error {
-	defer func() {
-		t.logger.Info("thread stopped")
-	}()
-
 	t.Lock()
 	t.ctx, t.cfn = context.WithCancel(context.Background())
 	t.Unlock()
@@ -87,6 +83,10 @@ func (t *SwitchThread) Start() error {
 	}()
 
 	t.logger.Info("thread started")
+
+	defer func() {
+		t.logger.Info("thread stopped")
+	}()
 
 	for {
 		select {
