@@ -13,6 +13,7 @@ import (
 	"github.com/inconshreveable/log15"
 )
 
+// OverlayDuration specifies how long the overlay will stay on the screen for.
 const OverlayDuration = 500 * time.Millisecond
 
 // OverlayThread is a long-running process than handles showing the GTK-based overlay.
@@ -43,14 +44,6 @@ func (t *OverlayThread) Start() error {
 	t.ctx, t.cfn = context.WithCancel(context.Background())
 	t.Unlock()
 
-	defer func() {
-		t.Lock()
-		t.ctx = nil
-		t.cfn = nil
-		t.window = nil
-		t.Unlock()
-	}()
-
 	// Set up GTK
 	gtk.Init(nil)
 
@@ -80,6 +73,11 @@ func (t *OverlayThread) Start() error {
 // Stop attempts to stop the overlay thread.
 func (t *OverlayThread) Stop() error {
 	gtk.MainQuit()
+
+	if t.ctx != nil && t.cfn != nil {
+		t.cfn()
+	}
+
 	return nil
 }
 
@@ -162,13 +160,13 @@ func (t *OverlayThread) handleMessage(window *gtk.Window, msg SwitchMessage) boo
 func (t *OverlayThread) enqueueMessages(reaperCh chan<- struct{}) {
 	for {
 		select {
-		case message := <-t.msgCh:
+		case msg := <-t.msgCh:
 			// Show the overlay
-			glib.IdleAdd(t.handleMessage, t.window, message)
+			glib.IdleAdd(t.handleMessage, t.window, msg)
 
 			// Notify other threads.
 			reaperCh <- struct{}{}
-			message.ResponseCh <- nil
+			msg.ResponseCh <- nil
 		case <-t.ctx.Done():
 			break
 		}
