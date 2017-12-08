@@ -12,6 +12,7 @@ import (
 	"github.com/SeerUK/i3x3/internal/metrics"
 	"github.com/SeerUK/i3x3/internal/rpc"
 	"github.com/SeerUK/i3x3/internal/workspace"
+	"github.com/SeerUK/i3x3/internal/xserver"
 	"github.com/inconshreveable/log15"
 )
 
@@ -57,6 +58,7 @@ func main() {
 
 	rpcMessages := make(chan rpc.Message)
 	switchMessages := make(chan workspace.SwitchMessage)
+	xeventMessages := make(chan struct{})
 
 	logger := baseLogger.New("module", "main/main")
 	logger.Info("starting background threads")
@@ -65,11 +67,17 @@ func main() {
 	rpcThread := rpc.NewThread(baseLogger, rpcService)
 	rpcThreadDone := daemon.NewBackgroundThread(ctx, rpcThread)
 
-	workspaceSwitchThread := workspace.NewSwitchThread(baseLogger, rpcMessages, switchMessages)
-	workspaceSwitchDone := daemon.NewBackgroundThread(ctx, workspaceSwitchThread)
+	workspaceDistributorThread := workspace.NewDistributorThread(baseLogger, xeventMessages)
+	workspaceDistributorDone := daemon.NewBackgroundThread(ctx, workspaceDistributorThread)
 
 	workspaceOverlayThread := workspace.NewOverlayThread(baseLogger, switchMessages)
 	workspaceOverlayDone := daemon.NewBackgroundThread(ctx, workspaceOverlayThread)
+
+	workspaceSwitchThread := workspace.NewSwitchThread(baseLogger, rpcMessages, switchMessages)
+	workspaceSwitchDone := daemon.NewBackgroundThread(ctx, workspaceSwitchThread)
+
+	xserverEventThread := xserver.NewEventThread(baseLogger, xeventMessages)
+	xserverEventDone := daemon.NewBackgroundThread(ctx, xserverEventThread)
 
 	var metricsThreadDone <-chan daemon.BackgroundThreadResult
 	if debug {
@@ -83,10 +91,14 @@ func main() {
 		logger.Info("stopping background threads", "signal", sig)
 	case res := <-rpcThreadDone:
 		logger.Crit("error starting RPC thread", "error", res.Error)
-	case res := <-workspaceSwitchDone:
-		logger.Crit("error starting workspace switch thread", "error", res.Error)
+	case res := <-workspaceDistributorDone:
+		logger.Crit("error starting workspace distributor thread", "error", res.Error)
 	case res := <-workspaceOverlayDone:
 		logger.Crit("error starting workspace overlay thread", "error", res.Error)
+	case res := <-workspaceSwitchDone:
+		logger.Crit("error starting workspace switch thread", "error", res.Error)
+	case res := <-xserverEventDone:
+		logger.Crit("error starting xserver event thread", "error", res.Error)
 	}
 
 	cfn()
@@ -100,8 +112,10 @@ func main() {
 
 	// Wait for our background threads to clean up.
 	<-rpcThreadDone
+	<-workspaceDistributorDone
 	<-workspaceOverlayDone
 	<-workspaceSwitchDone
+	<-xserverEventDone
 
 	if debug {
 		<-metricsThreadDone

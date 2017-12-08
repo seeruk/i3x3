@@ -75,13 +75,6 @@ func (t *SwitchThread) Start() error {
 	t.ctx, t.cfn = context.WithCancel(context.Background())
 	t.Unlock()
 
-	defer func() {
-		t.Lock()
-		t.ctx = nil
-		t.cfn = nil
-		t.Unlock()
-	}()
-
 	t.logger.Info("thread started")
 
 	defer func() {
@@ -97,7 +90,6 @@ func (t *SwitchThread) Start() error {
 				ctx := msg.Context
 				cmd := msg.Command
 
-				// @TODO: Actually switch workspaces here.
 				msg.ResponseCh <- t.handleCommand(ctx, cmd)
 
 				t.logger.Debug("sent response",
