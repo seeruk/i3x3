@@ -77,9 +77,6 @@ func main() {
 		metricsThreadDone = daemon.NewBackgroundThread(ctx, metricsThread)
 	}
 
-	//overlayThread := daemon.NewOverlayThread(...)
-	//overlayThreadDone := daemon.NewBackgroundThread(ctx, overlayThread)
-
 	select {
 	case sig := <-signals:
 		fmt.Println() // Skip the ^C
