@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/SeerUK/i3x3/internal/daemon"
+	"github.com/SeerUK/i3x3/internal/metrics"
 	"github.com/SeerUK/i3x3/internal/rpc"
 	"github.com/SeerUK/i3x3/internal/workspace"
 	"github.com/inconshreveable/log15"
@@ -72,7 +73,7 @@ func main() {
 
 	var metricsThreadDone <-chan daemon.BackgroundThreadResult
 	if debug {
-		metricsThread := daemon.NewMetricsThread(baseLogger)
+		metricsThread := metrics.NewThread(baseLogger)
 		metricsThreadDone = daemon.NewBackgroundThread(ctx, metricsThread)
 	}
 
