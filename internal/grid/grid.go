@@ -3,7 +3,7 @@ package grid
 import (
 	"math"
 
-	"github.com/SeerUK/i3x3/pkg/i3"
+	"github.com/SeerUK/i3x3/internal/i3"
 )
 
 // Direction represents the course that will be taken for movement through workspaces.

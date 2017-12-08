@@ -5,8 +5,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/SeerUK/i3x3/pkg/grid"
-	"github.com/SeerUK/i3x3/pkg/i3"
+	"github.com/SeerUK/i3x3/internal/grid"
+	"github.com/SeerUK/i3x3/internal/i3"
 )
 
 // i3x3 is a workspace grid management utility for i3. It allows you to navigate workspaces by

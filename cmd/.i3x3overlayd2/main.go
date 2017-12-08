@@ -9,9 +9,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/SeerUK/i3x3/pkg/grid"
-	"github.com/SeerUK/i3x3/pkg/overlayd"
-	"github.com/SeerUK/i3x3/pkg/proto"
+	"github.com/SeerUK/i3x3/internal/grid"
+	"github.com/SeerUK/i3x3/internal/overlayd"
+	"github.com/SeerUK/i3x3/internal/proto"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
