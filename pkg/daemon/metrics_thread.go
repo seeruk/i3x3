@@ -47,6 +47,12 @@ func (t *MetricsThread) Start() error {
 
 	var memStats runtime.MemStats
 
+	t.logger.Info("thread started")
+
+	defer func() {
+		t.logger.Info("thread stopped")
+	}()
+
 	for {
 		select {
 		case <-ticker.C:
