@@ -26,53 +26,30 @@ func NewBackgroundThread(ctx context.Context, thread Thread) <-chan BackgroundTh
 	bail := make(chan error, 1)
 	done := make(chan BackgroundThreadResult, 1)
 
-	// Wait for a request to stop from the context, in the background.
+	// This goroutine watches the context, waiting for a cancellation signal. If the thread ends
+	// itself before a cancellation is received from the context, then it will be signaled to
+	// "bail", preventing the goroutine from leaking.
 	go func() {
-		// First, wait for some kind of signal to do anything.
 		select {
 		case <-ctx.Done():
+			bail <- thread.Stop()
 		case <-bail:
-			// If we hit here, it means that the thread stopped on it's own. This might mean there
-			// was an error.
-			return
 		}
-
-		// Attempt to stop work. This should be a blocking call, and should unblock once stopping
-		// has finished. Otherwise there's no point in using it... Once we stop, we need to tell the
-		// other goroutine that it should send it's result. This should occur once everything has
-		// actually stopped, not when this function returns (which may be before the real stop).
-		bail <- thread.Stop()
 	}()
 
-	// Start the thread, and wait for it to stop, or be stopped.
+	// This goroutine actually starts the thread. The thread should then block until it is either
+	// cancelled, or it's work is done. If the thread stops on it's own, this goroutine will signal
+	// the one above to "bail". A result is then sent down the done channel to notify where this
+	// thread is being used that it has ended.
 	go func() {
-		// This call should block. Once this stops, we will check to see if we requested a shutdown.
-		// If we didn't (i.e. if the other thread hasn't told us to bail) then this thread must have
-		// stopped on it's own (maybe an error).
 		err := thread.Start()
-		if err == nil {
-			bail <- nil
-			done <- BackgroundThreadResult{}
-			return
-		}
 
 		select {
 		case err = <-bail:
-			// If a stop was requested, we will have already sent the result (the result from
-			// stopping), therefore, we shouldn't send another result
-			done <- BackgroundThreadResult{
-				Error: err,
-			}
-			return
 		default:
+			bail <- nil
 		}
 
-		// If the Thread didn't stop because it was told to (but rather because it finished for
-		// whatever reason), then we need to tell the other goroutine to bail, as there's no point
-		// in it trying to tell a Thread that's already stopped to stop.
-		bail <- nil
-
-		// Once we've told the other thread to bail, send the result of the Thread's start call.
 		done <- BackgroundThreadResult{
 			Error: err,
 		}
