@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/BurntSushi/xgb"
+  packages = [".","randr","render","xproto"]
+  revision = "27f122750802c950b2c869a5b63dafcf590ced95"
+
+[[projects]]
   name = "github.com/go-stack/stack"
   packages = ["."]
   revision = "259ab82a6cad3992b4e21ff5cac294ccb06474bc"
@@ -70,6 +76,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "acdcbf519f5a50b9a7b757b3f9543e1dbf27f8736978ba2a50ba92599cec71f1"
+  inputs-digest = "b2cf0053c993e2b78814647b35bec61f6a4ccc7ebe3dfc837310f985278f47c7"
   solver-name = "gps-cdcl"
   solver-version = 1
