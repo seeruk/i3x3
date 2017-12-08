@@ -19,7 +19,7 @@ you plug in a new display).
 
 ## Usage
 
-THe usage of i3x3 is meant to be pretty simple, here's an example of some configuration you can drop 
+The usage of i3x3 is meant to be pretty simple, here's an example of some configuration you can drop 
 right into your i3 config file:
 
 ```
