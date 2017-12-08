@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"time"
 
 	"github.com/SeerUK/i3x3/pkg/daemon"
@@ -56,6 +57,32 @@ func main() {
 	workspaceSwitcher := workspace.NewSwitcher(baseLogger, commands, switchResults)
 	workspaceSwitcherThread := daemon.NewWorkspaceSwitcherThread(baseLogger, workspaceSwitcher)
 	workspaceSwitcherDone := daemon.NewBackgroundThread(ctx, workspaceSwitcherThread)
+
+	// @TODO: Remove me once something is actually consuming this (overlay thread).
+	go func() {
+		for {
+			res := <-switchResults
+			res.ResponseCh <- nil
+		}
+	}()
+
+	// @TODO: Make a metrics thread. Maybe make a flag to enabled it? Print out stats every second.
+	go func() {
+		ticker := time.NewTicker(time.Second)
+
+		var memStats runtime.MemStats
+
+		runtime.ReadMemStats(&memStats)
+
+		for {
+			<-ticker.C
+
+			logger.Debug("metrics",
+				"goroutines", runtime.NumGoroutine(),
+				"heapAllocBytes", memStats.Alloc,
+			)
+		}
+	}()
 
 	//overlayThread := daemon.NewOverlayThread(...)
 	//overlayThreadDone := daemon.NewBackgroundThread(ctx, overlayThread)

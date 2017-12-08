@@ -20,6 +20,8 @@ const SwitchTimeout = time.Second
 
 // SwitchResult is the result of an attempt to switch workspaces.
 type SwitchMessage struct {
+	// Context is a context used to cancel downstream events. It should be set with a timeout.
+	Context context.Context
 	// ResponseCh is a channel to send a response down. The response may simply be nil, indicating
 	// success. If an error is sent, it may bubble up and be sent to the client.
 	ResponseCh chan<- error
@@ -28,9 +30,11 @@ type SwitchMessage struct {
 }
 
 // NewSwitchMessage creates a new switch message, used to notify some consumer.
-func NewSwitchMessage(target float64) (SwitchMessage, chan error) {
+func NewSwitchMessage(ctx context.Context, target float64) (SwitchMessage, chan error) {
 	responseCh := make(chan error, 1)
+
 	message := SwitchMessage{
+		Context:    ctx,
 		ResponseCh: responseCh,
 		Target:     target,
 	}
@@ -77,16 +81,17 @@ func (s *Switcher) Loop() error {
 			// Similar to how an HTTP server might work, we accept new messages, and process them in
 			// a goroutine. This allows messages to avoid blocking each other.
 			go func() {
+				ctx := msg.Context
 				cmd := msg.Command
 
-				s.logger.Debug("received message",
+				// @TODO: Actually switch workspaces here.
+				msg.ResponseCh <- s.handleCommand(ctx, cmd)
+
+				s.logger.Debug("sent response",
 					"direction", cmd.Direction,
 					"move", cmd.Move,
 					"overlay", cmd.Overlay,
 				)
-
-				// @TODO: Actually switch workspaces here.
-				msg.ResponseCh <- s.handleCommand(cmd)
 			}()
 		case <-s.ctx.Done():
 			return s.ctx.Err()
@@ -105,38 +110,33 @@ func (s *Switcher) GracefulStop() {
 }
 
 // handleCommand takes a daemon command, and actions it.
-func (s *Switcher) handleCommand(cmd proto.DaemonCommand) error {
+func (s *Switcher) handleCommand(ctx context.Context, cmd proto.DaemonCommand) error {
 	target, err := s.switchWorkspace(cmd.Direction, cmd.Move, cmd.Overlay)
 
-	msg, responseCh := NewSwitchMessage(target)
-	timeoutCh := make(chan struct{})
-
-	timer := time.AfterFunc(SwitchTimeout, func() {
-		// "Broadcast" the timeout signal.
-		close(timeoutCh)
-	})
-
-	defer timer.Stop()
+	ctx, _ = context.WithTimeout(ctx, SwitchTimeout)
+	msg, responseCh := NewSwitchMessage(ctx, target)
 
 	if err == nil && cmd.Overlay {
 		select {
 		case s.outCh <- msg:
 			s.logger.Debug("sent message",
-				"target", fmt.Sprintf("%f", target),
+				"target", fmt.Sprintf("%.0f", target),
 			)
 		case <-s.ctx.Done():
-		case <-timeoutCh:
+			return fmt.Errorf("workspace/switcher: sending: %v", s.ctx.Err())
+		case <-ctx.Done():
+			return fmt.Errorf("workspace/switcher: sending: timed out")
 		}
 
 		select {
-		case resErr := <-responseCh:
-			if resErr != nil {
-				err = resErr
+		case err := <-responseCh:
+			if err != nil {
+				return err
 			}
-		case <-timeoutCh:
-			err = fmt.Errorf("workspace/switcher: timed out waiting for internal response")
 		case <-s.ctx.Done():
-			err = fmt.Errorf("workspace/switcher: %v", s.ctx.Err())
+			return fmt.Errorf("workspace/switcher: receiving: %v", s.ctx.Err())
+		case <-ctx.Done():
+			return fmt.Errorf("workspace/switcher: receiving: timed out")
 		}
 	}
 
