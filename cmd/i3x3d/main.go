@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -35,8 +36,18 @@ import (
 //   left to do when we want the overlay to be shown. The result is a much more responsive overlay.
 
 func main() {
-	// @TODO: Use baseLogger app-wide base logger configuration.
+	var debug bool
+
+	flag.BoolVar(&debug, "debug", false, "Enabled debug logging")
+	flag.Parse()
+
+	logLevel := log15.LvlInfo
+	if debug {
+		logLevel = log15.LvlDebug
+	}
+
 	baseLogger := log15.New()
+	baseLogger.SetHandler(log15.LvlFilterHandler(logLevel, log15.StderrHandler))
 
 	ctx, cfn := context.WithCancel(context.Background())
 
@@ -59,9 +70,11 @@ func main() {
 	workspaceOverlayThread := workspace.NewOverlayThread(baseLogger, switchMessages)
 	workspaceOverlayDone := daemon.NewBackgroundThread(ctx, workspaceOverlayThread)
 
-	// @TODO: Debug flag?
-	metricsThread := daemon.NewMetricsThread(baseLogger)
-	metricsThreadDone := daemon.NewBackgroundThread(ctx, metricsThread)
+	var metricsThreadDone <-chan daemon.BackgroundThreadResult
+	if debug {
+		metricsThread := daemon.NewMetricsThread(baseLogger)
+		metricsThreadDone = daemon.NewBackgroundThread(ctx, metricsThread)
+	}
 
 	//overlayThread := daemon.NewOverlayThread(...)
 	//overlayThreadDone := daemon.NewBackgroundThread(ctx, overlayThread)
@@ -92,8 +105,9 @@ func main() {
 	<-workspaceOverlayDone
 	<-workspaceSwitchDone
 
-	// @TODO: Debug flag?
-	<-metricsThreadDone
+	if debug {
+		<-metricsThreadDone
+	}
 
 	logger.Info("threads stopped, exiting")
 }
