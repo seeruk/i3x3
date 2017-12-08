@@ -1,4 +1,4 @@
-package daemon
+package metrics
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 	"github.com/inconshreveable/log15"
 )
 
-const MetricsInterval = time.Minute
+const Interval = time.Minute
 
-// MetricsThread is a thread that gathers metrics and periodically prints them in the log.
-type MetricsThread struct {
+// Thread is a thread that gathers metrics and periodically prints them in the log.
+type Thread struct {
 	sync.Mutex
 
 	ctx    context.Context
@@ -20,17 +20,17 @@ type MetricsThread struct {
 	logger log15.Logger
 }
 
-// NewMetricsThread creates a new metrics thread instance.
-func NewMetricsThread(logger log15.Logger) *MetricsThread {
+// NewThread creates a new metrics thread instance.
+func NewThread(logger log15.Logger) *Thread {
 	logger = logger.New("module", "daemon/metrics")
 
-	return &MetricsThread{
+	return &Thread{
 		logger: logger,
 	}
 }
 
 // Start attempts to start the metrics thread.
-func (t *MetricsThread) Start() error {
+func (t *Thread) Start() error {
 	t.Lock()
 	t.ctx, t.cfn = context.WithCancel(context.Background())
 	t.Unlock()
@@ -42,7 +42,7 @@ func (t *MetricsThread) Start() error {
 		t.Unlock()
 	}()
 
-	ticker := time.NewTicker(MetricsInterval)
+	ticker := time.NewTicker(Interval)
 	defer ticker.Stop()
 
 	var memStats runtime.MemStats
@@ -69,7 +69,7 @@ func (t *MetricsThread) Start() error {
 }
 
 // Stop attempts to stop the metrics thread.
-func (t *MetricsThread) Stop() error {
+func (t *Thread) Stop() error {
 	t.Lock()
 	defer t.Unlock()
 
