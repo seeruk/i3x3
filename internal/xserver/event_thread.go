@@ -4,16 +4,12 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/BurntSushi/xgb"
 	"github.com/BurntSushi/xgb/randr"
 	"github.com/BurntSushi/xgb/xproto"
 	"github.com/inconshreveable/log15"
 )
-
-// PollInterval is the amount of time between each polling tick.
-const PollInterval = 500 * time.Millisecond
 
 // EventThread is a thread that polls (sadly) for X events, notifying an channel whenever an event
 // occurs, so it may be reacted to.
@@ -57,23 +53,14 @@ func (t *EventThread) Start() error {
 		t.logger.Info("thread stopped")
 	}()
 
-	ticker := time.NewTicker(PollInterval)
-
 	for {
-		select {
-		case <-ticker.C:
-			ev, xerr := t.xconn.PollForEvent()
-			if xerr != nil {
-				return xerr
-			}
+		ev, xerr := t.xconn.WaitForEventContext(t.ctx)
+		if xerr != nil {
+			return xerr
+		}
 
-			if ev == nil {
-				continue
-			}
-
-			t.handleEvent()
-		case <-t.ctx.Done():
-			return t.ctx.Err()
+		if ev == nil {
+			continue
 		}
 	}
 
@@ -96,8 +83,8 @@ func (t *EventThread) Stop() error {
 	return nil
 }
 
+// handleEvent notifies the given out channel that some event occurred.
 func (t *EventThread) handleEvent() {
-
 	t.outCh <- struct{}{}
 }
 

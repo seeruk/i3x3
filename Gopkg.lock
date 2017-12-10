@@ -5,7 +5,8 @@
   branch = "master"
   name = "github.com/BurntSushi/xgb"
   packages = [".","randr","render","xproto"]
-  revision = "27f122750802c950b2c869a5b63dafcf590ced95"
+  revision = "671fa3cb2cc4324973b69d1fb5958158cf8857ae"
+  source = "github.com/SeerUK/xgb"
 
 [[projects]]
   name = "github.com/go-stack/stack"
@@ -17,13 +18,13 @@
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto","ptypes","ptypes/any","ptypes/duration","ptypes/timestamp"]
-  revision = "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
 [[projects]]
   branch = "master"
   name = "github.com/gotk3/gotk3"
   packages = ["cairo","gdk","glib","gtk","pango"]
-  revision = "75d251f0638d84c1b29df29eccad3b7d2be8e445"
+  revision = "fc1725e212edc708648c069136864675169d2070"
 
 [[projects]]
   name = "github.com/inconshreveable/log15"
@@ -47,35 +48,35 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "c73622c77280266305273cb545f54516ced95b93"
+  revision = "dc871a5d77e227f5bbf6545176ef3eeebf87e76e"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "9167dbfd0f8e88b731dd88cbf73a270701a37bb4"
+  revision = "b8f5ef32195cae6470b728e8ca677f0dbed1a004"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
   packages = ["collate","collate/build","internal/colltab","internal/gen","internal/tag","internal/triegen","internal/ucd","language","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable"]
-  revision = "7d4e23b25beca3bc3b804ab134f0b12b4ca909d1"
+  revision = "3b24cac7bc3a458991ab409aa2a339ac9e0d60d6"
 
 [[projects]]
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "03951f3b52582ecab79e5a37a86b5a20c5f64df7"
+  revision = "73cb5d0be5af113b42057925bd6c93e3cd9f60fd"
 
 [[projects]]
   name = "google.golang.org/grpc"
-  packages = [".","balancer","codes","connectivity","credentials","grpclb/grpc_lb_v1/messages","grpclog","internal","keepalive","metadata","naming","peer","resolver","stats","status","tap","transport"]
-  revision = "61d37c5d657a47e4404fd6823bd598341a2595de"
-  version = "v1.7.1"
+  packages = [".","balancer","balancer/roundrobin","codes","connectivity","credentials","encoding","grpclb/grpc_lb_v1/messages","grpclog","internal","keepalive","metadata","naming","peer","resolver","resolver/dns","resolver/manual","resolver/passthrough","stats","status","tap","transport"]
+  revision = "be077907e29fdb945d351e4284eb5361e7f8924e"
+  version = "v1.8.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b2cf0053c993e2b78814647b35bec61f6a4ccc7ebe3dfc837310f985278f47c7"
+  inputs-digest = "e8b416b4fff7039c4fdb335194e77dd62a0081a70afe30e99fb936bbfe04e7fb"
   solver-name = "gps-cdcl"
   solver-version = 1

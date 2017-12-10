@@ -1,6 +1,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/BurntSushi/xgb"
+  source = "github.com/SeerUK/xgb"
 
 [[constraint]]
   branch = "master"
