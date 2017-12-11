@@ -62,6 +62,8 @@ func (t *EventThread) Start() error {
 		if ev == nil {
 			continue
 		}
+
+		t.handleEvent()
 	}
 
 	return nil
