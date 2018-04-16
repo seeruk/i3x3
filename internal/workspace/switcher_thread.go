@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SeerUK/i3x3/internal/grid"
-	"github.com/SeerUK/i3x3/internal/i3"
-	"github.com/SeerUK/i3x3/internal/proto"
-	"github.com/SeerUK/i3x3/internal/rpc"
 	"github.com/inconshreveable/log15"
+	"github.com/seeruk/i3x3/internal/grid"
+	"github.com/seeruk/i3x3/internal/i3"
+	"github.com/seeruk/i3x3/internal/proto"
+	"github.com/seeruk/i3x3/internal/rpc"
 )
 
 // SwitchTimeout is the amount of time the switcher will wait for outbound message acknowledgement.

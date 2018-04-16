@@ -2,20 +2,18 @@ package workspace
 
 import (
 	"context"
+	"fmt"
+	"sort"
 	"sync"
 	"time"
 
-	"sort"
-
-	"fmt"
-
-	"github.com/SeerUK/i3x3/internal/i3"
 	"github.com/inconshreveable/log15"
+	"github.com/seeruk/i3x3/internal/i3"
 )
 
 // DistributionInterval is the amount of time between each automatic redistribution. These will
 // happen periodically, regardless of any messages being sent down the message channel.
-const DistributionInterval = 30 * time.Second
+const DistributionInterval = 15 * time.Second
 
 // DistributorThread is a long-running process that handles re-distributing workspaces so that i3x3
 // remains functional. Whenever an X event occurs, or also periodically, workspaces will be placed

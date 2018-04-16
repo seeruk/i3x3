@@ -7,8 +7,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/SeerUK/i3x3/internal/proto"
-	"github.com/SeerUK/i3x3/internal/rpc"
+	"github.com/seeruk/i3x3/internal/proto"
+	"github.com/seeruk/i3x3/internal/rpc"
 	"google.golang.org/grpc"
 )
 

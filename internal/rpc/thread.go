@@ -5,8 +5,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/SeerUK/i3x3/internal/proto"
 	"github.com/inconshreveable/log15"
+	"github.com/seeruk/i3x3/internal/proto"
 	"google.golang.org/grpc"
 )
 

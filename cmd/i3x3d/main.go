@@ -8,12 +8,12 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/SeerUK/i3x3/internal/daemon"
-	"github.com/SeerUK/i3x3/internal/metrics"
-	"github.com/SeerUK/i3x3/internal/rpc"
-	"github.com/SeerUK/i3x3/internal/workspace"
-	"github.com/SeerUK/i3x3/internal/xserver"
 	"github.com/inconshreveable/log15"
+	"github.com/seeruk/i3x3/internal/daemon"
+	"github.com/seeruk/i3x3/internal/metrics"
+	"github.com/seeruk/i3x3/internal/rpc"
+	"github.com/seeruk/i3x3/internal/workspace"
+	"github.com/seeruk/i3x3/internal/xserver"
 )
 
 // i3x3d is the daemon used actually execute the functionality provided by i3x3. It is a daemon

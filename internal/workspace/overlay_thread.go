@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SeerUK/i3x3/internal/grid"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/inconshreveable/log15"
+	"github.com/seeruk/i3x3/internal/grid"
 )
 
 // OverlayDuration specifies how long the overlay will stay on the screen for.
