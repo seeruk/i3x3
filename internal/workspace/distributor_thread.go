@@ -40,27 +40,52 @@ func NewDistributorThread(logger log15.Logger, msgCh chan struct{}) *Distributor
 
 // Start attempts to start the distributor thread.
 func (t *DistributorThread) Start() error {
-	t.Lock()
-	t.ctx, t.cfn = context.WithCancel(context.Background())
-	t.Unlock()
-
-	ticker := time.NewTicker(DistributionInterval)
-
 	t.logger.Info("thread started")
 
 	defer func() {
 		t.logger.Info("thread stopped")
 	}()
 
+	return t.start(0)
+}
+
+// start attempts to start the distributor thread, counting the number of attempts, recursively
+// calling itself. Once past a certain threshold, this thread will give up attempting to start.
+func (t *DistributorThread) start(attempt int) error {
+	// TODO(seeruk): Configurable?
+	threshold := 5
+
+	t.Lock()
+	t.ctx, t.cfn = context.WithCancel(context.Background())
+	t.Unlock()
+
+	ticker := time.NewTicker(DistributionInterval)
+
+	doDistribute := func() error {
+		err := redistributeWorkspaces()
+		if err != nil && attempt >= threshold {
+			return err
+		}
+
+		if err != nil {
+			t.logger.Warn("redistribution failed",
+				"attempt", attempt,
+				"threshold", threshold,
+			)
+		}
+
+		return nil
+	}
+
 	for {
 		select {
 		case <-ticker.C:
-			err := redistributeWorkspaces()
+			err := doDistribute()
 			if err != nil {
 				return err
 			}
 		case <-t.msgCh:
-			err := redistributeWorkspaces()
+			err := doDistribute()
 			if err != nil {
 				return err
 			}

@@ -17,14 +17,8 @@
   branch = "master"
   name = "github.com/SeerUK/i3x3"
   packages = [
-    "internal/daemon",
     "internal/grid",
-    "internal/i3",
-    "internal/metrics",
-    "internal/proto",
-    "internal/rpc",
-    "internal/workspace",
-    "internal/xserver"
+    "internal/i3"
   ]
   revision = "4fb6bb46be98f23cde70035c5d1424073f19e948"
 
@@ -155,6 +149,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a582e8c306d21fdd53625bed894eb3cce619558fb27c93b488746966a8f5ab6c"
+  inputs-digest = "763cf330feb2cf0ca325cfb09898232dbecd141b150d448eeaf31499cd8fd6ba"
   solver-name = "gps-cdcl"
   solver-version = 1
