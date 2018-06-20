@@ -91,24 +91,20 @@ func BuildEdgeFuncs(environment Environment, size Size) map[Direction]EdgeFunc {
 
 	return map[Direction]EdgeFunc{
 		// Up detects if we're on the top edge.
-		Up: func(tar float64) bool {
-			return tar-(ao*x) <= 0
+		Up: func(cw float64) bool {
+			return cw-(ao*x) <= 0
 		},
 		// Down detects if we're on the bottom edge.
-		Down: func(tar float64) bool {
-			return tar+(ao*x) > (ao*((x*y)-1))+co
+		Down: func(cw float64) bool {
+			return cw+(ao*x) > (ao*((x*y)-1))+co
 		},
 		// Left detects if we're on the left edge.
-		Left: func(tar float64) bool {
-			mod := math.Mod((tar-co)/x, 2)
-
-			return math.Trunc(mod) == mod
+		Left: func(cw float64) bool {
+			return math.Mod(cw-co, x*ao) == 0
 		},
 		// Right detects if we're on the right edge.
-		Right: func(tar float64) bool {
-			mod := math.Mod(((tar-(ao*(x-1)))-co)/x, 2)
-
-			return math.Trunc(mod) == mod
+		Right: func(cw float64) bool {
+			return math.Mod((cw-((x-1)*ao))-co, x*ao) == 0
 		},
 	}
 }
