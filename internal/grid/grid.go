@@ -75,10 +75,10 @@ func NewEnvironment(outputs []i3.Output, workspaces []i3.Workspace) Environment 
 	}
 }
 
-// An EdgeFunc takes the a workspace number, and then based on the other settings (such as current
-// workspace, current output, number of outputs, so on) it will calculate if we're at the edge of a
-// side of the grid. Each side has it's own function to calculate if the given workspace is on the
-// edge, defined below.
+// An EdgeFunc takes the current workspace number, and then based on the other settings (such as
+// current output, number of outputs, so on) it will calculate if we're at the edge of a side of the
+// grid. Each side has it's own function to calculate if the given workspace is on the edge, defined
+// below.
 type EdgeFunc func(tar float64) bool
 
 // BuildEdgeFuncs creates the aforementioned edge detection functions.
@@ -112,7 +112,7 @@ func BuildEdgeFuncs(environment Environment, size Size) map[Direction]EdgeFunc {
 // A TargetFunc calculates the next workspace that would be moved to in a given direction, based on
 // other info (such as current workspace, current output, number of outputs, so on). The return
 // value may not be a valid workspace number. The use of the above EdgeFuncs helps to ensure that
-// TargetFuncs only get called when necessary.
+// TargetFuncs only get called when it should be possible to move to the target workspace.
 type TargetFunc func() float64
 
 // BuildTargetFuncs creates the the aforementioned target workspace functions.
