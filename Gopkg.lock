@@ -3,101 +3,112 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:f330de46b52d8de5598f903ee857850a21731f0d92307a5eb7384b00aecf893d"
   name = "github.com/BurntSushi/xgb"
   packages = [
     ".",
     "randr",
     "render",
-    "xproto"
+    "xproto",
   ]
+  pruneopts = ""
   revision = "671fa3cb2cc4324973b69d1fb5958158cf8857ae"
-  source = "github.com/SeerUK/xgb"
+  source = "github.com/seeruk/xgb"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/SeerUK/i3x3"
-  packages = [
-    "internal/grid",
-    "internal/i3"
-  ]
-  revision = "4fb6bb46be98f23cde70035c5d1424073f19e948"
-
-[[projects]]
+  digest = "1:a01080d20c45c031c13f3828c56e58f4f51d926a482ad10cc0316225097eb7ea"
   name = "github.com/go-stack/stack"
   packages = ["."]
-  revision = "259ab82a6cad3992b4e21ff5cac294ccb06474bc"
-  version = "v1.7.0"
+  pruneopts = ""
+  revision = "2fee6af1a9795aafbe0253a0cfbdf668e1fb8a9a"
+  version = "v1.8.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:dc9ecce1f9a48e8ec89f4b4ff21fdecd971a245cbdeca7cae46478f1af518502"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
-    "ptypes/timestamp"
+    "ptypes/timestamp",
   ]
-  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+  pruneopts = ""
+  revision = "fa093f59480c0adaaabf88a72a0b0e48b95aec25"
 
 [[projects]]
   branch = "master"
+  digest = "1:8a496845fe0c6ce4b3015e04b5fb8bcc6b33924b0ebf26ee2d0782a4fe15e70e"
   name = "github.com/gotk3/gotk3"
   packages = [
     "cairo",
     "gdk",
     "glib",
     "gtk",
-    "pango"
+    "pango",
   ]
-  revision = "fc1725e212edc708648c069136864675169d2070"
+  pruneopts = ""
+  revision = "72ea2e79ea229c4132165e4268f259ac47fb3c5d"
 
 [[projects]]
+  digest = "1:a970a0ada840519f69920ea4ce6be93ef6bbe04843730983ba699c06021fd789"
   name = "github.com/inconshreveable/log15"
   packages = ["."]
-  revision = "0decfc6c20d9ca0ad143b0e89dcaa20f810b4fb3"
-  version = "v2.13"
+  pruneopts = ""
+  revision = "b30bc20e4fd12cec79a9aae62e91cfcf458bd253"
+  version = "v2.15"
 
 [[projects]]
+  digest = "1:eab986cd0513d271bb1fd9c9d12acd7eb4cfd57cb604122c65bd0914e4637619"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
-  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
-  version = "v0.0.9"
+  pruneopts = ""
+  revision = "68e95eba382c972aafde02ead2cd2426a8a92480"
+  version = "v0.1.6"
 
 [[projects]]
+  digest = "1:87fecb4f5564bd9bc810e4c83d4ac434fd17599edc7b35e27580c2cfc48cdb7c"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
-  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
-  version = "v0.0.3"
+  pruneopts = ""
+  revision = "7b513a986450394f7bbf1476909911b3aa3a55ce"
+  version = "v0.0.12"
 
 [[projects]]
   branch = "master"
+  digest = "1:cc0cd79615fac200d1df9b269bd74f8903ae793f27dfb4c4b9f9b47ce79f6b25"
   name = "golang.org/x/net"
   packages = [
     "context",
+    "http/httpguts",
     "http2",
     "http2/hpack",
     "idna",
     "internal/timeseries",
-    "lex/httplex",
-    "trace"
+    "trace",
   ]
-  revision = "dc871a5d77e227f5bbf6545176ef3eeebf87e76e"
+  pruneopts = ""
+  revision = "ff2c4b7c35a07b0c1e90ce72aa7bfe41bb66a3cb"
 
 [[projects]]
   branch = "master"
+  digest = "1:afb82fdca558cae6124d36cc8e01876aea991e026dc04dc26184a8f012207aec"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "b8f5ef32195cae6470b728e8ca677f0dbed1a004"
+  pruneopts = ""
+  revision = "1957bb5e6d1f523308b49060df02171d06ddfc77"
 
 [[projects]]
-  branch = "master"
+  digest = "1:740b51a55815493a8d0f2b1e0d0ae48fe48953bf7eaf3fcc4198823bf67768c0"
   name = "golang.org/x/text"
   packages = [
     "collate",
     "collate/build",
     "internal/colltab",
     "internal/gen",
+    "internal/language",
+    "internal/language/compact",
     "internal/tag",
     "internal/triegen",
     "internal/ucd",
@@ -107,48 +118,121 @@
     "unicode/bidi",
     "unicode/cldr",
     "unicode/norm",
-    "unicode/rangetable"
+    "unicode/rangetable",
   ]
-  revision = "3b24cac7bc3a458991ab409aa2a339ac9e0d60d6"
+  pruneopts = ""
+  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
+  version = "v0.3.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:4ea75f036b0e1d743a6b5fe55da80f0dac4eb6a7185a92810b9ebca9aa82d263"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "73cb5d0be5af113b42057925bd6c93e3cd9f60fd"
+  pruneopts = ""
+  revision = "bca184e23272c97429f0cb78a825f71ede0635fc"
 
 [[projects]]
+  digest = "1:ecabf4625300878ef042c7cd4d492770a69aebbc81d43916e582af060a11597a"
   name = "google.golang.org/grpc"
   packages = [
     ".",
+    "attributes",
+    "backoff",
     "balancer",
+    "balancer/base",
     "balancer/roundrobin",
+    "binarylog/grpc_binarylog_v1",
     "codes",
     "connectivity",
     "credentials",
+    "credentials/internal",
     "encoding",
-    "grpclb/grpc_lb_v1/messages",
+    "encoding/proto",
     "grpclog",
     "internal",
+    "internal/backoff",
+    "internal/balancerload",
+    "internal/binarylog",
+    "internal/buffer",
+    "internal/channelz",
+    "internal/envconfig",
+    "internal/grpclog",
+    "internal/grpcrand",
+    "internal/grpcsync",
+    "internal/grpcutil",
+    "internal/resolver/dns",
+    "internal/resolver/passthrough",
+    "internal/status",
+    "internal/syscall",
+    "internal/transport",
     "keepalive",
     "metadata",
     "naming",
     "peer",
     "resolver",
-    "resolver/dns",
-    "resolver/manual",
-    "resolver/passthrough",
+    "serviceconfig",
     "stats",
     "status",
     "tap",
-    "transport"
   ]
-  revision = "be077907e29fdb945d351e4284eb5361e7f8924e"
-  version = "v1.8.1"
+  pruneopts = ""
+  revision = "754ee590a4f386d0910d887f3b8776354042260b"
+  version = "v1.29.1"
+
+[[projects]]
+  digest = "1:ceb27cc89cd1ef77c07c3ee297bd5da842b25889c76123031950cc4595401859"
+  name = "google.golang.org/protobuf"
+  packages = [
+    "encoding/prototext",
+    "encoding/protowire",
+    "internal/descfmt",
+    "internal/descopts",
+    "internal/detrand",
+    "internal/encoding/defval",
+    "internal/encoding/messageset",
+    "internal/encoding/tag",
+    "internal/encoding/text",
+    "internal/errors",
+    "internal/fieldnum",
+    "internal/fieldsort",
+    "internal/filedesc",
+    "internal/filetype",
+    "internal/flags",
+    "internal/genname",
+    "internal/impl",
+    "internal/mapsort",
+    "internal/pragma",
+    "internal/set",
+    "internal/strs",
+    "internal/version",
+    "proto",
+    "reflect/protoreflect",
+    "reflect/protoregistry",
+    "runtime/protoiface",
+    "runtime/protoimpl",
+    "types/known/anypb",
+    "types/known/durationpb",
+    "types/known/timestamppb",
+  ]
+  pruneopts = ""
+  revision = "3b9eee12916ce611400f93d6c2fed2fc2911b0ad"
+  version = "v1.21.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "763cf330feb2cf0ca325cfb09898232dbecd141b150d448eeaf31499cd8fd6ba"
+  input-imports = [
+    "github.com/BurntSushi/xgb",
+    "github.com/BurntSushi/xgb/randr",
+    "github.com/BurntSushi/xgb/xproto",
+    "github.com/golang/protobuf/proto",
+    "github.com/gotk3/gotk3/gdk",
+    "github.com/gotk3/gotk3/glib",
+    "github.com/gotk3/gotk3/gtk",
+    "github.com/inconshreveable/log15",
+    "golang.org/x/net/context",
+    "google.golang.org/grpc",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

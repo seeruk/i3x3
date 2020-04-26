@@ -3,7 +3,7 @@ package grid_test
 import (
 	"testing"
 
-	"github.com/SeerUK/i3x3/internal/grid"
+	"github.com/seeruk/i3x3/internal/grid"
 )
 
 func TestWorkspaceGridPosition(t *testing.T) {
