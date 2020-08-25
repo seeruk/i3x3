@@ -83,7 +83,7 @@ func (t *OverlayThread) Stop() error {
 
 // handleMessage takes a message and updates the window UI appropriately, finally showing the
 // window (if it's not already visible) at the end.
-func (t *OverlayThread) handleMessage(window *gtk.Window, msg SwitchMessage) bool {
+func (t *OverlayThread) handleMessage(msg SwitchMessage) bool {
 	// Set up custom styles
 	cssProvider, _ := gtk.CssProviderNew()
 	cssProvider.LoadFromData(`
@@ -106,8 +106,8 @@ func (t *OverlayThread) handleMessage(window *gtk.Window, msg SwitchMessage) boo
 	size := grid.NewSize(msg.Environment, 3, 3)
 
 	// Remove all children...
-	window.GetChildren().Foreach(func(item interface{}) {
-		window.Remove(item.(*gtk.Widget))
+	t.window.GetChildren().Foreach(func(item interface{}) {
+		t.window.Remove(item.(*gtk.Widget))
 	})
 
 	ogrid, _ := gtk.GridNew()
@@ -150,8 +150,8 @@ func (t *OverlayThread) handleMessage(window *gtk.Window, msg SwitchMessage) boo
 		ogrid.Attach(box, col, row, 1, 1)
 	}
 
-	window.Add(ogrid)
-	window.ShowAll()
+	t.window.Add(ogrid)
+	t.window.ShowAll()
 
 	return false
 }
@@ -162,7 +162,7 @@ func (t *OverlayThread) enqueueMessages(reaperCh chan<- struct{}) {
 		select {
 		case msg := <-t.msgCh:
 			// Show the overlay
-			glib.IdleAdd(t.handleMessage, t.window, msg)
+			glib.IdleAdd(t.handleMessage, msg)
 
 			// Notify other threads.
 			reaperCh <- struct{}{}
