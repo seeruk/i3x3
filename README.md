@@ -60,8 +60,8 @@ If you have a single output (i.e. single monitor) then you probably won't notice
 going on at all. Your workspaces will go up in increments of 1, left to right, top to bottom.
 
 If you have multiple outputs however, things work slightly differently. Taking the default 3x3 grid,
-this is what is how your workspaces will be distributed (bear in mind you may not have all
-workspaces active in i3).
+this is how your workspaces will be distributed (bear in mind you may not have all workspaces active
+in i3).
 
 ```
  Output 1  |  Output 2
